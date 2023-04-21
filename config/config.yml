@@ -1,0 +1,9 @@
+# Server configurations
+server:
+  addr: "0.0.0.0"
+  port: 4444
+  
+# Database credentials
+database:
+  uri: "mongodb://172.17.0.4:27017"
+  name: "faryuk"

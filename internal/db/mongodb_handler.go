@@ -1,13 +1,10 @@
 package db
 
 import (
-  "context"
+	"context"
   "log"
-
-  "FaRyuk/config"
-
-  "go.mongodb.org/mongo-driver/mongo"
-  "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Handler : wrapper for mongo.Client
@@ -15,13 +12,15 @@ type Handler struct {
   client *mongo.Client
 }
 
+// TODO check return dbHandler or error
 // NewDBHandler : returns a new Handler
 func NewDBHandler() * Handler{
-  clientOptions := options.Client().ApplyURI(config.Cfg.Database.URI)
-  client, err := mongo.Connect(context.TODO(), clientOptions)
+  clientOptions := options.Client().ApplyURI("mongodb://0.0.0.0:27017")
+  client, err := mongo.Connect(context.Background(), clientOptions)
 
   if err != nil {
-    log.Fatal(err)
+    log.Fatal("ERROR CREAING DB HANDLER")
+     log.Fatal(err)
     return nil
   }
 

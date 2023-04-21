@@ -1,16 +1,17 @@
 package api
 
 import (
-  "encoding/json"
-  "io/ioutil"
-  "net/http"
-  "time"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"time"
 
-  "FaRyuk/internal/db"
-  "FaRyuk/internal/types"
-  "FaRyuk/internal/user"
+	"FaRyuk/internal/db"
+	"FaRyuk/internal/types"
+	"FaRyuk/internal/user"
 
-  "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 // APIRegisterKey : This key should be used to register
@@ -45,7 +46,6 @@ func register(w http.ResponseWriter, r *http.Request) {
     writeInternalError(&w, "Please provide a valid json")
     return
   }
-
   var key string
   err = json.Unmarshal(objmap["API_REGISTER_KEY"], &key)
   if err != nil || key != APIRegisterKey {
@@ -77,12 +77,16 @@ func register(w http.ResponseWriter, r *http.Request) {
   dbHandler := db.NewDBHandler()
   defer dbHandler.CloseConnection()
 
-  usr := dbHandler.GetUserByUsername(username)
+  c := make(chan types.User)
 
-  if usr != nil {
-    writeForbidden(&w, "User already exists")
-    return
-  }
+  go dbHandler.GetUserByUsername(username, c)
+usr:=<-c
+fmt.Println("user from channel: ", usr)
+
+  // if usr != nil {
+  //   writeForbidden(&w, "User already exists")
+  //   return
+  // }
 
   u := user.NewUser(username, password)
   err = dbHandler.InsertUser(u)
@@ -125,14 +129,17 @@ func login(w http.ResponseWriter, r *http.Request) {
   dbHandler := db.NewDBHandler()
   defer dbHandler.CloseConnection()
 
-  usr := dbHandler.GetUserByUsername(username)
+   c := make(chan types.User)
 
-  if usr == nil || !user.Login(usr, password) {
-    writeForbidden(&w, "Wrong password or username")
-    return
-  }
+     go dbHandler.GetUserByUsername(username, c)
+usr:=<-c
+fmt.Println("user from channel: ", usr)
+  // if usr == nil || !user.Login(usr, password) {
+  //   writeForbidden(&w, "Wrong password or username")
+  //   return
+  // }
 
-  token, err := user.GenerateJWT(usr, JWTSecret)
+  token, err := user.GenerateJWT(&usr, JWTSecret)
 
   if err != nil {
     writeInternalError(&w, unexpectedError)

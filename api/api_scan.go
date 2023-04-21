@@ -373,14 +373,12 @@ func doPortScan(w http.ResponseWriter, r *http.Request) {
   var scannedPort string
   err = json.Unmarshal(objmap["scannedPort"], &scannedPort)
   if err != nil {
-    fmt.Println(err)
     writeInternalError(&w, "Please provide a valid scannedPort")
     return
   }
 
   port, err := strconv.Atoi(scannedPort)
   if err != nil {
-    fmt.Println(err)
     writeInternalError(&w, "Please provide a valid port")
     return
   }

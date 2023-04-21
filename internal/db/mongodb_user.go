@@ -1,19 +1,22 @@
 package db
 
 import (
-  "FaRyuk/config"
-  "FaRyuk/internal/types"
-  "context"
-  "log"
+	"FaRyuk/config"
+	"FaRyuk/internal/types"
+	"context"
+	"fmt"
+	"log"
 
-  "go.mongodb.org/mongo-driver/bson"
-  "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // InsertUser : inserts user in database
 func (db *Handler) InsertUser(r *types.User) error {
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   _, err := collection.InsertOne(context.TODO(), r)
+ fmt.Println("user inserted: ", r.ID, r.Username)
+ fmt.Println("err: ",err)
   return err
 }
 
@@ -72,15 +75,13 @@ func (db *Handler) GetUserByID(id string) *types.User {
 }
 
 // GetUserByUsername : returns a user by its username
-func (db *Handler) GetUserByUsername(username string) *types.User {
+func (db *Handler) GetUserByUsername(username string, c chan types.User)   {
   var user types.User
   collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
-  err := collection.FindOne(context.TODO(), bson.M{"username":username}).Decode(&user)
-  if err != nil {
-    return nil
-  }
-  return &user
-}
+  collection.FindOne(context.TODO(), bson.M{"username":username}).Decode(&user)
+  
+ c <-user
+ }
 
 // GetUsersByGroup : returns all users in given group
 func (db *Handler) GetUsersByGroup(group types.Group) ([]types.User, error) {

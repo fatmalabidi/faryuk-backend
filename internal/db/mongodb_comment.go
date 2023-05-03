@@ -16,7 +16,7 @@ func (db *Handler) InsertComment(r *types.Comment) error {
 }
 
 // GetComments : gets all comments
-func (db *Handler) GetCommentsWithChannel(comments chan<- types.CommentsWithErrorType) {
+func (db *Handler) GetComments(comments chan<- types.CommentsWithErrorType) {
 	var results []types.Comment
 	collection := db.client.Database("faryuk").Collection("comment")
 	findOptions := options.Find()
@@ -46,7 +46,7 @@ func (db *Handler) GetCommentsWithChannel(comments chan<- types.CommentsWithErro
 }
 
 // RemoveCommentByID : removes comment by ID
-func (db *Handler) RemoveCommentByIDWithChannel(id string, done chan<- error) {
+func (db *Handler) RemoveCommentByID(id string, done chan<- error) {
 	collection := db.client.Database("faryuk").Collection("comment")
 	_, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
@@ -57,14 +57,14 @@ func (db *Handler) RemoveCommentByIDWithChannel(id string, done chan<- error) {
 }
 
 // UpdateComment : updates comment
-func (db *Handler) UpdateCommentWithChannel(r *types.Comment, done chan<- bool) {
+func (db *Handler) UpdateComment(r *types.Comment, done chan<- bool) {
 	collection := db.client.Database("faryuk").Collection("comment")
 	_, err := collection.UpdateOne(context.Background(), bson.M{"id": r.ID}, bson.M{"$set": r})
 	done <- err == nil
 }
 
 // GetCommentByID : retrieves comment by ID
-func (db *Handler) GetCommentByIDWithChannel(id string, result chan<- types.CommentWithErrorType) {
+func (db *Handler) GetCommentByID(id string, result chan<- types.CommentWithErrorType) {
 	var comment types.Comment
 	collection := db.client.Database("faryuk").Collection("comment")
 	err := collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&comment)

@@ -64,23 +64,29 @@ func writeResponse(w *http.ResponseWriter, m types.JSONReturn) {
 	}
 }
 
-func writeForbidden(w *http.ResponseWriter, m string) {
+func writeForbidden(w *http.ResponseWriter, m string  ) {
 	(*w).WriteHeader(http.StatusForbidden)
-	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m})
+	writeResponse(w, types.JSONReturn{Status: "Forbidden", Body: m, Code: http.StatusForbidden})
 }
 
-func writeNotFound(w *http.ResponseWriter, m string) {
+func writeUnAuthorized(w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusNotFound)
-	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m})
+	writeResponse(w, types.JSONReturn{Status: "UnAuthorized",  Code: http.StatusUnauthorized})
+}
+
+
+func writeBadRequest(w *http.ResponseWriter) {
+	(*w).WriteHeader(http.StatusNotFound)
+	writeResponse(w, types.JSONReturn{Status: "BadRequest",  Code: http.StatusBadRequest})
 }
 
 func writeInternalError(w *http.ResponseWriter, m string) {
 	(*w).WriteHeader(http.StatusInternalServerError)
-	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m})
+	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m, Code: http.StatusInternalServerError})
 }
 
-func writeObject(w *http.ResponseWriter, m interface{}) {
-	writeResponse(w, types.JSONReturn{Status: "Success", Body: m})
+func returnSuccess(w *http.ResponseWriter, m interface{}) {
+	writeResponse(w, types.JSONReturn{Status: "Success", Code: http.StatusOK, Body: m})
 }
 
 // HandleRequests : set up routes for API

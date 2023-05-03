@@ -26,38 +26,38 @@ func TestInsertComment(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGetCommentsWithChannel(t *testing.T) {
+func TestGetComments(t *testing.T) {
 	db := NewDBHandler()
 
 	commentsChan := make(chan types.CommentsWithErrorType)
-	go db.GetCommentsWithChannel(commentsChan)
+	go db.GetComments(commentsChan)
 	comments := <-commentsChan
 	assert.NoError(t, comments.Err)
 }
 
-func TestRemoveCommentByIDWithChannel(t *testing.T) {
+func TestRemoveCommentByID(t *testing.T) {
 	db := NewDBHandler()
 	done := make(chan error)
 	id := "some-id"
-	go db.RemoveCommentByIDWithChannel(id, done)
+	go db.RemoveCommentByID(id, done)
 	err := <-done
 	assert.NoError(t, err)
 }
 
-func TestUpdateCommentWithChannel(t *testing.T) {
+func TestUpdateComment(t *testing.T) {
 	db := NewDBHandler()
 	done := make(chan bool)
 	comment := &types.Comment{}
-	go db.UpdateCommentWithChannel(comment, done)
+	go db.UpdateComment(comment, done)
 	result := <-done
 	assert.True(t, result)
 }
 
-func TestGetCommentByIDWithChannel(t *testing.T) {
+func TestGetCommentByID(t *testing.T) {
 	db := NewDBHandler()
 	result := make(chan types.CommentWithErrorType)
 	id := "some-id"
-	go db.GetCommentByIDWithChannel(id, result)
+	go db.GetCommentByID(id, result)
 	ch := <-result
 	assert.NotNil(t, ch.Comment)
 	assert.NoError(t, ch.Err)

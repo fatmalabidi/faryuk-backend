@@ -126,4 +126,5 @@ type Infos struct {
 type JSONReturn struct {
 	Status string      `bson:"status" json:"status"`
 	Body   interface{} `bson:"body" json:"body"`
+	Code   int `bson:"code" json:"code"`
 }

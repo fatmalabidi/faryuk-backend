@@ -2,10 +2,9 @@ package db
 
 import (
 	"context"
-	"log"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 )
 
 // Handler : wrapper for mongo.Client
@@ -13,12 +12,15 @@ type Handler struct {
 	client *mongo.Client
 }
 
+// TODO check return dbHandler or error
 // NewDBHandler : returns a new Handler
 func NewDBHandler() *Handler {
-	clientOptions := options.Client().ApplyURI("mongodb://127.0.0.1:27017")
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+  // TODO get connection string from a config file/ envirement file
+	clientOptions := options.Client().ApplyURI("mongodb://0.0.0.0:27017")
+	client, err := mongo.Connect(context.Background(), clientOptions)
 
 	if err != nil {
+		log.Fatal("ERROR CREAING DB HANDLER")
 		log.Fatal(err)
 		return nil
 	}

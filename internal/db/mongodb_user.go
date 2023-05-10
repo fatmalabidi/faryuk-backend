@@ -1,7 +1,6 @@
 package db
 
 import (
-	"FaRyuk/config"
 	"FaRyuk/internal/types"
 	"context"
 	"fmt"
@@ -23,7 +22,7 @@ func (db *Handler) InsertUser(r *types.User) error {
 // GetUsers : returns all users
 func (db * Handler) GetUsers() []types.User{
   var users []types.User
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   findOptions := options.Find()
   cur, err := collection.Find(context.TODO(), bson.D{}, findOptions)
   if err != nil {
@@ -51,14 +50,14 @@ func (db * Handler) GetUsers() []types.User{
 
 // RemoveUserByID : removes a user by its ID
 func (db * Handler) RemoveUserByID(id string) (error) {
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   _, err := collection.DeleteOne(context.TODO(), bson.M{"id": id})
   return err
 }
-
+ 
 // UpdateUser : updates a user
 func (db *Handler) UpdateUser(r *types.User) (error) {
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   _, err := collection.UpdateOne(context.TODO(), bson.M{"id": r.ID}, bson.M{"$set":r})
   return err
 }
@@ -66,7 +65,7 @@ func (db *Handler) UpdateUser(r *types.User) (error) {
 // GetUserByID : gets a user by its ID
 func (db *Handler) GetUserByID(id string) *types.User {
   var user types.User
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   err := collection.FindOne(context.TODO(), bson.M{"id":id}).Decode(&user)
   if err != nil {
     return nil
@@ -77,7 +76,7 @@ func (db *Handler) GetUserByID(id string) *types.User {
 // GetUserByUsername : returns a user by its username
 func (db *Handler) GetUserByUsername(username string, c chan types.User)   {
   var user types.User
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   collection.FindOne(context.TODO(), bson.M{"username":username}).Decode(&user)
   
  c <-user
@@ -90,7 +89,7 @@ func (db *Handler) GetUsersByGroup(group types.Group) ([]types.User, error) {
   groups := make([]types.Group, 0)
   groups = append(groups, group)
 
-  collection := db.client.Database(config.Cfg.Database.Name).Collection("users")
+  collection := db.client.Database("faryuk").Collection("users")
   filter := bson.M{"groups": bson.M{"$all": groups}}
 
   cur, err := collection.Find(context.TODO(), filter, &opts)

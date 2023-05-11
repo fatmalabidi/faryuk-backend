@@ -1,7 +1,7 @@
 package db
 
 // TODO refactor unit tests to use mocks and add other usecases
-// TODO refactor test to add setup/cleanup tests 
+// TODO refactor test to add setup/cleanup tests
 import (
 	"testing"
 
@@ -13,8 +13,10 @@ import (
 func init() {
 	db := NewDBHandler()
 	comment := &types.Comment{
-		ID:      "some-id",
-		Content: "some-search-text",
+		ID:       "some-id",
+		Content:  "some-search-text",
+		IDResult: "some-result-id",
+		Owner:    "owner-1",
 	}
 	db.InsertComment(comment)
 }
@@ -91,7 +93,8 @@ func TestGetCommentsByResult(t *testing.T) {
 
 	commentsChan := make(chan types.CommentsWithErrorType)
 	idResult := "some-result-id"
-	go db.GetCommentsByResult(idResult, commentsChan)
-	comments := <-commentsChan
-	assert.NoError(t, comments.Err)
+	go db.GetCommentsByResultID(idResult, commentsChan)
+	result := <-commentsChan
+	assert.NoError(t, result.Err)
+	assert.NotEmpty(t, result.Comments)
 }

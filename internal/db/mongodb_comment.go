@@ -144,28 +144,28 @@ func (db *Handler) GetCommentsByTextAndOwner(search string, idUser string, resul
 	result <- types.CommentsWithErrorType{Comments: results, Err: nil}
 }
 
-// GetCommentsByResult : get all comments for a given result
-func (db *Handler) GetCommentsByResult(idResult string, result chan<- types.CommentsWithErrorType) {
+// GetCommentsByResultID : get all comments for a given result
+func (db *Handler) GetCommentsByResultID(idResult string, result chan<- types.CommentsWithErrorType) {
 	defer close(result)
 	var results []types.Comment
 
 	collection := db.client.Database("faryuk").Collection("comment")
-	findOptions := options.Find()
 
-	cur, err := collection.Find(context.TODO(), findOptions)
+	cur, err := collection.Find(context.Background(), bson.M{"idResult": idResult})
+
 	if err != nil {
 		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
 		return
 	}
 
 	for cur.Next(context.TODO()) {
-		var elem types.Comment
-		err := cur.Decode(&elem)
+		var comment types.Comment
+		err := cur.Decode(&comment)
 		if err != nil {
 			result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
 			return
 		}
-		results = append(results, elem)
+		results = append(results, comment)
 	}
 
 	if err := cur.Err(); err != nil {
@@ -174,6 +174,6 @@ func (db *Handler) GetCommentsByResult(idResult string, result chan<- types.Comm
 	}
 
 	cur.Close(context.TODO())
-	result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+	result <- types.CommentsWithErrorType{Comments: results, Err: err}
 
 }

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/sharing"
 	"FaRyuk/internal/types"
 
@@ -54,7 +54,7 @@ func shareResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := sharing.NewSharing(idUser, idResult, sharedWith)
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	err = dbHandler.InsertSharing(s)
@@ -77,7 +77,7 @@ func acceptSharing(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idSharing := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	s, err := dbHandler.GetSharingByID(idSharing)
@@ -128,7 +128,7 @@ func declineSharing(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idSharing := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	s, err := dbHandler.GetSharingByID(idSharing)
@@ -159,7 +159,7 @@ func getPending(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 	sharings, err := dbHandler.GetSharingsByUser(idUser)
 

@@ -1,17 +1,24 @@
-package db
+package comment_test
 
 // TODO refactor unit tests to use mocks and add other usecases
 // TODO refactor test to add setup/cleanup tests
 import (
 	"testing"
+	"time"
 
+	"FaRyuk/internal/db/mongodb/comment"
 	"FaRyuk/internal/types"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	db := NewDBHandler()
+var (
+	db *comment.MongoCommentRepository
+)
+
+func TestMain(m *testing.M) {
+	db = comment.NewMongoCommentRepository()
 	comment := &types.Comment{
 		ID:       "some-id",
 		Content:  "some-search-text",
@@ -19,26 +26,31 @@ func init() {
 		Owner:    "owner-1",
 	}
 	db.InsertComment(comment)
+	m.Run()
 }
 
 func TestInsertComment(t *testing.T) {
-	db := NewDBHandler()
-	comment := &types.Comment{}
+	comment := &types.Comment{
+		ID:          uuid.NewString(),
+		Content:     "new test comment",
+		Owner:       "unit test",
+		CreatedDate: time.Now(),
+		UpdatedDate: time.Now(),
+		IDResult:    uuid.NewString(),
+	}
 	err := db.InsertComment(comment)
 	assert.NoError(t, err)
 }
 
 func TestGetComments(t *testing.T) {
-	db := NewDBHandler()
-
 	commentsChan := make(chan types.CommentsWithErrorType)
 	go db.GetComments(commentsChan)
-	comments := <-commentsChan
-	assert.NoError(t, comments.Err)
+	result := <-commentsChan
+	assert.NoError(t, result.Err)
+	assert.NotEmpty(t, result.Comments)
 }
 
 func TestRemoveCommentByID(t *testing.T) {
-	db := NewDBHandler()
 	done := make(chan error)
 	id := "some-id"
 	go db.RemoveCommentByID(id, done)
@@ -47,29 +59,44 @@ func TestRemoveCommentByID(t *testing.T) {
 }
 
 func TestUpdateComment(t *testing.T) {
-	db := NewDBHandler()
+	commentToUpdate := &types.Comment{
+		ID:          uuid.NewString(),
+		Content:     "test comment to update",
+		Owner:       "unit test",
+		CreatedDate: time.Now(),
+		UpdatedDate: time.Now(),
+		IDResult:    uuid.NewString(),
+	}
+	err := db.InsertComment(commentToUpdate)
+	assert.NoError(t, err)
+
 	done := make(chan bool)
-	comment := &types.Comment{}
+	comment := &types.Comment{
+		ID:          uuid.NewString(),
+		Content:     "updated comment",
+		Owner:       "unit test",
+		UpdatedDate: time.Now(),
+		IDResult:    commentToUpdate.IDResult,
+	}
+
 	go db.UpdateComment(comment, done)
 	result := <-done
 	assert.True(t, result)
+	// TODO get commlent by id and check if it is correctly updated
 }
 
 func TestGetCommentByID(t *testing.T) {
-	db := NewDBHandler()
+
 	result := make(chan types.CommentWithErrorType)
 	id := "some-id"
 	go db.GetCommentByID(id, result)
 	ch := <-result
 	assert.NotNil(t, ch.Comment)
 	assert.NoError(t, ch.Err)
-
 }
 
 func TestGetCommentsByText(t *testing.T) {
-	db := NewDBHandler()
 	result := make(chan types.CommentsWithErrorType)
-
 	search := "some-search-text"
 	go db.GetCommentsByText(search, result)
 	ch := <-result
@@ -78,19 +105,16 @@ func TestGetCommentsByText(t *testing.T) {
 }
 
 func TestGetCommentsByTextAndOwner(t *testing.T) {
-	db := NewDBHandler()
-
 	search := "some-search-text"
-	idUser := "some-user-id"
-	result := make(chan types.CommentsWithErrorType)
-	go db.GetCommentsByTextAndOwner(search, idUser, result)
-	comments := <-result
-	assert.NoError(t, comments.Err)
+	idUser := "owner-1"
+	commentsChan := make(chan types.CommentsWithErrorType)
+	go db.GetCommentsByTextAndOwner(search, idUser, commentsChan)
+	result := <-commentsChan
+	assert.NoError(t, result.Err)
+	assert.NotEmpty(t, result.Comments)
 }
 
 func TestGetCommentsByResult(t *testing.T) {
-	db := NewDBHandler()
-
 	commentsChan := make(chan types.CommentsWithErrorType)
 	idResult := "some-result-id"
 	go db.GetCommentsByResultID(idResult, commentsChan)

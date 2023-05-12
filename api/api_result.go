@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
@@ -54,7 +54,7 @@ func getResults(w http.ResponseWriter, r *http.Request) {
 		offset, _ = strconv.Atoi(offsetSlice[0])
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	if searchMap["group"] != "" {
@@ -101,7 +101,7 @@ func countResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	if username == "admin" {
@@ -121,7 +121,7 @@ func getResultByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	result := dbHandler.GetResultByID(id)
@@ -136,7 +136,7 @@ func getResultByID(w http.ResponseWriter, r *http.Request) {
 func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	result := dbHandler.GetResultByID(id)
@@ -161,7 +161,7 @@ func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 
 func deleteTag(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	body, err := ioutil.ReadAll(r.Body)

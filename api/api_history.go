@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
@@ -48,7 +48,7 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 		offset, _ = strconv.Atoi(offsetSlice[0])
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	if searchMap["group"] != "" {
@@ -95,7 +95,7 @@ func countHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	if username == "admin" {
@@ -115,7 +115,7 @@ func getHistoryRecordByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	result, err := dbHandler.GetHistoryRecordByID(id)
@@ -131,7 +131,7 @@ func deleteHistory(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id := vars["id"]
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	res := dbHandler.RemoveHistoryRecordByID(id)

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/runner"
 	"FaRyuk/internal/types"
 
@@ -22,7 +22,7 @@ func addRunnersEndpoints(secure *mux.Router) {
 func getRunners(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var runners []types.Runner
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	username, idUser, err := getIdentity(&w, r)
@@ -103,7 +103,7 @@ func addRunner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	runner := runner.NewRunner(tag, displayName, strings.Split(cmdLine, " "), idUser, isWeb, isPort)
@@ -136,7 +136,7 @@ func deleteRunner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	err = dbHandler.RemoveRunnerByID(id)

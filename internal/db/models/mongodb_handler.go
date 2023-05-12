@@ -1,10 +1,11 @@
-package db
+package models
 
 import (
 	"context"
+	"log"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 )
 
 // Handler : wrapper for mongo.Client

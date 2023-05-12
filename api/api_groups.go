@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/types"
 
@@ -24,7 +24,7 @@ func addGroupEndpoints(secure *mux.Router, adminRouter *mux.Router) {
 func getGroups(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var groups []types.Group
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	username, idUser, err := getIdentity(&w, r)
@@ -68,7 +68,7 @@ func addGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	groupRes, err := dbHandler.GetGroupsByName(name)
@@ -107,7 +107,7 @@ func deleteGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	err = dbHandler.RemoveGroupByID(id)
@@ -146,7 +146,7 @@ func addUserToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	group, err := dbHandler.GetGroupByID(idGroup)
@@ -206,7 +206,7 @@ func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	user := dbHandler.GetUserByID(idUser)

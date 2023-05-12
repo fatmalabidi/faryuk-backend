@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/types"
 	"FaRyuk/internal/user"
 
@@ -74,7 +74,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	c := make(chan types.User)
@@ -126,7 +126,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	c := make(chan types.User)
@@ -180,7 +180,7 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	usr := dbHandler.GetUserByID(userID)
@@ -246,7 +246,7 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	usr := dbHandler.GetUserByID(userID)
@@ -272,7 +272,7 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 
 func whoami(w http.ResponseWriter, r *http.Request) {
 	_, id, err := getIdentity(&w, r)
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	usr := dbHandler.GetUserByID(id)
@@ -301,7 +301,7 @@ func getUsername(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idUser := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	usr := dbHandler.GetUserByID(idUser)
@@ -342,7 +342,7 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	group, err = dbHandler.GetGroupByID(groupid)
@@ -366,7 +366,7 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 	usrs := dbHandler.GetUsers()
 

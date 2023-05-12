@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/types"
 )
 
 func getInfos(w http.ResponseWriter, r *http.Request) {
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	results := types.Infos{}

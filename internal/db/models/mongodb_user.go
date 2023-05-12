@@ -1,4 +1,4 @@
-package db
+package models
 
 import (
 	"FaRyuk/internal/types"

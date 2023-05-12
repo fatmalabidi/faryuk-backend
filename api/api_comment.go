@@ -3,6 +3,7 @@ package api
 import (
 	"FaRyuk/internal/db"
 	"FaRyuk/internal/types"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,8 +16,11 @@ func AddCommentEndpoints(secure *mux.Router) {
 	secure.HandleFunc("/api/v1/comments/{id}", GetCommentsByResultID).Methods(http.MethodGet)
 }
 
-func ListComments(w http.ResponseWriter, r *http.Request) {
-	dbHandler := db.NewDBHandler()
+func ListComments(w http.ResponseWriter, _ *http.Request) {
+	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer dbHandler.CloseConnection()
 
 	commentsChan := make(chan types.CommentsWithErrorType)
@@ -37,7 +41,10 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentID := vars["id"]
 
-	dbHandler := db.NewDBHandler()
+	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer dbHandler.CloseConnection()
 
 	// Create a channel to receive the result of the database operation
@@ -47,7 +54,8 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	go dbHandler.RemoveCommentByID(commentID, done)
 
 	// Wait for the database operation to complete and check for errors
-	err := <-done
+	err = <-done
+
 	if err != nil {
 		// If an error occurred, return an appropriate HTTP response
 		writeInternalError(&w, err.Error())
@@ -63,7 +71,10 @@ func GetCommentsByResultID(w http.ResponseWriter, r *http.Request) {
 	// Get the result ID from the request URL parameters
 	vars := mux.Vars(r)
 	resultID := vars["id"]
-	dbHandler := db.NewDBHandler()
+	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer dbHandler.CloseConnection()
 
 	// Create a channel to receive the result of the database operation

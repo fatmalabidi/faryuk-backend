@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/runner"
 	"FaRyuk/internal/types"
 	"FaRyuk/pkg"
@@ -97,7 +97,7 @@ func getWebResult(
 	var url string
 	var historyRecord types.HistoryRecord
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	webresult := types.WebResult{}

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/operations"
 
@@ -121,7 +121,7 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 
 func scanAndSave(idUser string, host string, groupID string, portlist string, dirlist string, rescan bool, scanners []string) {
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	rs, _ := dbHandler.GetResultsByHostAndOwner(host, idUser)

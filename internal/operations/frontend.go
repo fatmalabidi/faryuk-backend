@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"FaRyuk/internal/db"
+	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
 	"FaRyuk/pkg"
@@ -28,7 +28,7 @@ func DoHost(
 	ports := helper.FileToInts("./ressources/ports/" + portsFilename)
 	dirs := helper.FileToStrings("./ressources/dirs/" + dirsFilename)
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	for idx := range scanners {
@@ -124,7 +124,7 @@ func WebScanPort(idUser, id string, port int, ssl bool, base, dirFilename, statu
 	var res types.Result
 	var webRunners []types.Runner
 	dirs := helper.FileToStrings("./ressources/dirs/" + dirFilename)
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	for idx := range scanners {
@@ -185,7 +185,7 @@ func WebScanPort(idUser, id string, port int, ssl bool, base, dirFilename, statu
 func RunnerScanPort(idUser, id string, port int, scanners []string) bool {
 	var portRunners []types.Runner
 	var historyRecord types.HistoryRecord
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 	resPtr := dbHandler.GetResultByID(id)
 	result := *resPtr
@@ -259,7 +259,7 @@ func DoDomain(idUser, domain, groupId, subdomainFilename string, isWildcard bool
 	chunks := helper.ChunkSlice(dirs, len(dirs)/9)
 	results := make([]string, 0)
 
-	dbHandler := db.NewDBHandler()
+	dbHandler := models.NewDBHandler()
 	defer dbHandler.CloseConnection()
 
 	historyRecord.ID = uuid.New().String()

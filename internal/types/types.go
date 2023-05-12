@@ -84,10 +84,9 @@ type CommentsWithErrorType struct {
 	Err      error
 }
 
-
 type CommentWithErrorType struct {
 	Comment Comment
-	Err      error
+	Err     error
 }
 
 // User : user struct
@@ -126,5 +125,5 @@ type Infos struct {
 type JSONReturn struct {
 	Status string      `bson:"status" json:"status"`
 	Body   interface{} `bson:"body" json:"body"`
-	Code   int `bson:"code" json:"code"`
+	Code   int         `bson:"code" json:"code"`
 }

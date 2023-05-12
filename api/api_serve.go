@@ -64,20 +64,19 @@ func writeResponse(w *http.ResponseWriter, m types.JSONReturn) {
 	}
 }
 
-func writeForbidden(w *http.ResponseWriter, m string  ) {
+func writeForbidden(w *http.ResponseWriter, m string) {
 	(*w).WriteHeader(http.StatusForbidden)
 	writeResponse(w, types.JSONReturn{Status: "Forbidden", Body: m, Code: http.StatusForbidden})
 }
 
 func writeUnAuthorized(w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusNotFound)
-	writeResponse(w, types.JSONReturn{Status: "UnAuthorized",  Code: http.StatusUnauthorized})
+	writeResponse(w, types.JSONReturn{Status: "UnAuthorized", Code: http.StatusUnauthorized})
 }
-
 
 func writeBadRequest(w *http.ResponseWriter) {
 	(*w).WriteHeader(http.StatusNotFound)
-	writeResponse(w, types.JSONReturn{Status: "BadRequest",  Code: http.StatusBadRequest})
+	writeResponse(w, types.JSONReturn{Status: "BadRequest", Code: http.StatusBadRequest})
 }
 
 func writeInternalError(w *http.ResponseWriter, m string) {

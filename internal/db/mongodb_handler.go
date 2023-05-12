@@ -15,7 +15,7 @@ type Handler struct {
 // TODO check return dbHandler or error
 // NewDBHandler : returns a new Handler
 func NewDBHandler() *Handler {
-  // TODO get connection string from a config file/ envirement file
+	// TODO get connection string from a config file/ envirement file
 	clientOptions := options.Client().ApplyURI("mongodb://0.0.0.0:27017")
 	client, err := mongo.Connect(context.Background(), clientOptions)
 

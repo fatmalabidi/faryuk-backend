@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-  // TODO override test dbHandler (use db test)
-	// TODO: Add more assertions to validate the response body or other aspects of the test
+// TODO override test dbHandler (use db test)
+// TODO: Add more assertions to validate the response body or other aspects of the test
 
 func TestListComments(t *testing.T) {
 	// TODO add token validation
@@ -30,10 +30,10 @@ func TestListComments(t *testing.T) {
 }
 
 func TestRemoveCommentByID(t *testing.T) {
-	 
+
 	commentID := "some-id"
- 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("/comments:%s",commentID), nil)
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("/comments:%s", commentID), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestRemoveCommentByID(t *testing.T) {
 func TestGetCommentsByResultID(t *testing.T) {
 	resultID := "some-result-id"
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("/comments:%s",resultID), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/comments:%s", resultID), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,5 +59,5 @@ func TestGetCommentsByResultID(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotEmpty(t,  rr.Body)
+	assert.NotEmpty(t, rr.Body)
 }

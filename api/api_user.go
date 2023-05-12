@@ -395,7 +395,7 @@ func verifyJWT(next http.Handler) http.Handler {
 
 		token := tokenCookie.Value
 		if !user.VerifyJWT(token, JWTSecret) {
-			writeForbidden(&w,"")
+			writeForbidden(&w, "")
 			return
 		}
 		next.ServeHTTP(w, r)

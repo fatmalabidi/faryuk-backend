@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 
 	"github.com/gorilla/mux"
 )

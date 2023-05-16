@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/sharing"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 
 	"github.com/gorilla/mux"
 )

@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"sync"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/operations"
+	"FaRyuk/models"
 
 	"github.com/gorilla/mux"
 )

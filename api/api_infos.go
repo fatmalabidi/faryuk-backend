@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 )
 
 func getInfos(w http.ResponseWriter, r *http.Request) {

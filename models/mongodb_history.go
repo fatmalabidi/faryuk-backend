@@ -14,7 +14,7 @@ import (
 
 // InsertHistoryRecord : inserts history record in the database
 func (db *Handler) InsertHistoryRecord(r types.HistoryRecord) error {
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 
 	_, err := collection.InsertOne(context.TODO(), r)
 	if err != nil {
@@ -27,7 +27,7 @@ func (db *Handler) InsertHistoryRecord(r types.HistoryRecord) error {
 // GetHistoryRecords : returns all history records
 func (db *Handler) GetHistoryRecords() []types.HistoryRecord {
 	var results []types.HistoryRecord
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	findOptions := options.Find()
 	cur, err := collection.Find(context.TODO(), bson.D{}, findOptions)
 	if err != nil {
@@ -58,7 +58,7 @@ func (db *Handler) GetHistoryRecords() []types.HistoryRecord {
 
 // RemoveHistoryRecordByID : removes a history record by ID
 func (db *Handler) RemoveHistoryRecordByID(id string) bool {
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	_, err := collection.DeleteOne(context.TODO(), bson.M{"id": id})
 	if err != nil {
 		log.Fatal(err)
@@ -69,7 +69,7 @@ func (db *Handler) RemoveHistoryRecordByID(id string) bool {
 
 // UpdateHistoryRecord : updates a history record
 func (db *Handler) UpdateHistoryRecord(r types.HistoryRecord) bool {
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	_, err := collection.UpdateOne(context.TODO(), bson.M{"id": r.ID}, bson.M{"$set": r})
 	if err != nil {
 		log.Fatal(err)
@@ -81,7 +81,7 @@ func (db *Handler) UpdateHistoryRecord(r types.HistoryRecord) bool {
 // GetHistoryRecordByID : returns one history record by ID
 func (db *Handler) GetHistoryRecordByID(id string) (types.HistoryRecord, error) {
 	var result types.HistoryRecord
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	err := collection.FindOne(context.TODO(), bson.M{"id": id}).Decode(&result)
 	if err != nil {
 		return result, err
@@ -96,7 +96,7 @@ func (db *Handler) GetHistoryRecordsBySearch(search map[string]string,
 	var results []types.HistoryRecord
 	var opts options.FindOptions
 
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	filter := bson.M{"host": bson.M{"$regex": ".*" + search["default"] + ".*"},
 		"state":      bson.M{"$regex": ".*" + search["state"] + ".*"},
 		"ownerGroup": bson.M{"$regex": ".*" + search["group"] + ".*"},
@@ -167,7 +167,7 @@ func (db *Handler) GetHistoryRecordsBySearchAndOwner(search map[string]string,
 	var results []types.HistoryRecord
 	var opts options.FindOptions
 
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	filter := bson.M{"host": bson.M{"$regex": ".*" + search["default"] + ".*"},
 		"state":      bson.M{"$regex": ".*" + search["state"] + ".*"},
 		"ownerGroup": bson.M{"$regex": ".*" + search["group"] + ".*"},
@@ -236,7 +236,7 @@ func (db *Handler) GetHistoryRecordsBySearchAndOwner(search map[string]string,
 
 // CountHistoryRecordsBySearch : returns history records by search criteria for a given owner
 func (db *Handler) CountHistoryRecordsBySearch(search map[string]string) (int, error) {
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	filter := bson.M{"host": bson.M{"$regex": ".*" + search["default"] + ".*"},
 		"state":      bson.M{"$regex": ".*" + search["state"] + ".*"},
 		"ownerGroup": bson.M{"$regex": ".*" + search["group"] + ".*"},
@@ -273,7 +273,7 @@ func (db *Handler) CountHistoryRecordsBySearch(search map[string]string) (int, e
 // CountHistoryRecordsBySearchAndOwner : returns history records by search criteria for a given owner
 func (db *Handler) CountHistoryRecordsBySearchAndOwner(search map[string]string, groups []string,
 	idUser string) (int, error) {
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	filter := bson.M{"host": bson.M{"$regex": ".*" + search["default"] + ".*"},
 		"state":      bson.M{"$regex": ".*" + search["state"] + ".*"},
 		"ownerGroup": bson.M{"$regex": ".*" + search["group"] + ".*"},
@@ -315,7 +315,7 @@ func (db *Handler) CountHistoryRecordsBySearchAndOwner(search map[string]string,
 // GetHistoryRecordsByOwner : returns all history records that a given owner can access
 func (db *Handler) GetHistoryRecordsByOwner(idUser string) ([]types.HistoryRecord, error) {
 	var results []types.HistoryRecord
-	collection :=db.client.Database("faryuk").Collection("history")
+	collection := db.client.Database("faryuk").Collection("history")
 	findOptions := options.Find()
 	cur, err := collection.Find(context.TODO(), bson.D{}, findOptions)
 	if err != nil {

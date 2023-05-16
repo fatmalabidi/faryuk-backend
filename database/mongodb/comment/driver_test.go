@@ -3,10 +3,13 @@ package comment_test
 // TODO refactor unit tests to use mocks and add other usecases
 // TODO refactor test to add setup/cleanup tests
 import (
+	"fmt"
+	"os"
 	"testing"
 	"time"
 
-	"FaRyuk/internal/db/mongodb/comment"
+	"FaRyuk/config"
+	"FaRyuk/database/mongodb/comment"
 	"FaRyuk/internal/types"
 
 	"github.com/google/uuid"
@@ -18,15 +21,16 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	db = comment.NewMongoCommentRepository()
-	comment := &types.Comment{
-		ID:       "some-id",
-		Content:  "some-search-text",
-		IDResult: "some-result-id",
-		Owner:    "owner-1",
-	}
-	db.InsertComment(comment)
-	m.Run()
+	os.Setenv("CONFIGOR_ENV", "test")
+	cfg, _ := config.MakeConfig()
+	db = comment.NewMongoCommentRepository(cfg)
+	
+	// if !err {
+	// 	fmt.Println(err)
+	// 	os.Exit(-1)
+	// }
+	os.Exit(m.Run())
+	// TODO add the cleanup db logic on a defer
 }
 
 func TestInsertComment(t *testing.T) {
@@ -38,8 +42,10 @@ func TestInsertComment(t *testing.T) {
 		UpdatedDate: time.Now(),
 		IDResult:    uuid.NewString(),
 	}
-	err := db.InsertComment(comment)
-	assert.NoError(t, err)
+	done := make(chan bool)
+	go db.InsertComment(comment, done)
+	err := <-done
+	assert.True(t, err)
 }
 
 func TestGetComments(t *testing.T) {
@@ -48,6 +54,7 @@ func TestGetComments(t *testing.T) {
 	result := <-commentsChan
 	assert.NoError(t, result.Err)
 	assert.NotEmpty(t, result.Comments)
+	fmt.Println(result.Comments)
 }
 
 func TestRemoveCommentByID(t *testing.T) {
@@ -67,9 +74,10 @@ func TestUpdateComment(t *testing.T) {
 		UpdatedDate: time.Now(),
 		IDResult:    uuid.NewString(),
 	}
-	err := db.InsertComment(commentToUpdate)
-	assert.NoError(t, err)
-
+	insertDone := make(chan bool)
+	go db.InsertComment(commentToUpdate, insertDone)
+	err := <-insertDone
+	assert.True(t, err)
 	done := make(chan bool)
 	comment := &types.Comment{
 		ID:          uuid.NewString(),
@@ -86,6 +94,16 @@ func TestUpdateComment(t *testing.T) {
 }
 
 func TestGetCommentByID(t *testing.T) {
+	comment := &types.Comment{
+		ID:       "some-id",
+		Content:  "some-search-text",
+		IDResult: "some-result-id",
+		Owner:    "owner-1",
+	}
+	done := make(chan bool)
+	go db.InsertComment(comment, done)
+	err := <-done
+	assert.True(t, err)
 
 	result := make(chan types.CommentWithErrorType)
 	id := "some-id"

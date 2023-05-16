@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/runner"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 	"FaRyuk/pkg"
 
 	"github.com/google/uuid"

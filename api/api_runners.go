@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/runner"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 
 	"github.com/gorilla/mux"
 )

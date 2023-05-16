@@ -1,14 +1,15 @@
-package db
+package database
 
 import (
-	"FaRyuk/internal/db/mongodb/comment"
+	"FaRyuk/config"
+	"FaRyuk/database/mongodb/comment"
 	"FaRyuk/internal/types"
 	"errors"
 )
 
 type DbHandler interface {
 	CommentHandler
-	// TODO add the remaining interfaces 
+	// TODO add the remaining interfaces
 }
 
 type MainDb struct {
@@ -17,7 +18,7 @@ type MainDb struct {
 }
 
 type CommentHandler interface {
-	InsertComment(r *types.Comment) error
+	InsertComment(r *types.Comment, done chan<- bool)
 	GetComments(comments chan<- types.CommentsWithErrorType)
 	RemoveCommentByID(id string, done chan<- error)
 	UpdateComment(r *types.Comment, done chan<- bool)
@@ -28,20 +29,13 @@ type CommentHandler interface {
 	CloseConnection()
 }
 
-func CreateDbHandler(config Config) (DbHandler, error) {
+func CreateDbHandler(cfg *config.Config) (DbHandler, error) {
 	var dbHandler MainDb
-	switch config.CommentDbType {
+	switch cfg.Database.DbType {
 	case "mongo":
-		dbHandler.CommentHandler= comment.NewMongoCommentRepository()
+		dbHandler.CommentHandler = comment.NewMongoCommentRepository(cfg)
 	default:
 		return nil, errors.New("db type not supported")
 	}
 	return dbHandler, nil
-}
-
-
-type Config struct{
-	CommentDbType string
-	// TODO add the remaining model's db type
-	// each model can be implemented with different driver/db (MySql, Mongo, DynamoDb, redis...)
 }

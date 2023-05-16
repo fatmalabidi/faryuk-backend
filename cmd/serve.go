@@ -21,15 +21,16 @@ var serveCmd = &cobra.Command{
 
 // LaunchServe : launch api and web server
 func LaunchServe(cmd *cobra.Command, args []string) {
-	config.Init()
+	// config.Init()
 	internal.MainServer()
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	// global
-	serveCmd.PersistentFlags().StringVarP(&wapiaddr, "listen-api-addr", "L", config.Cfg.Server.Addr, "Listen address")
-	serveCmd.PersistentFlags().IntVarP(&wapiport, "listen-api-port", "P", config.Cfg.Server.Port, "Listen port")
+	cfg, _ :=  config.MakeConfig()
+	serveCmd.PersistentFlags().StringVarP(&wapiaddr, "listen-api-addr", "L", cfg.Server.Host, "Listen address")
+	serveCmd.PersistentFlags().IntVarP(&wapiport, "listen-api-port", "P", cfg.Server.Port, "Listen port")
 	err := cobra.MarkFlagRequired(serveCmd.Flags(), "serve")
 	if err != nil {
 		return

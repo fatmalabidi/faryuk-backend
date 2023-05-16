@@ -91,6 +91,10 @@ func returnSuccess(w *http.ResponseWriter, m interface{}) {
 // HandleRequests : set up routes for API
 func HandleRequests() {
 	initKeys()
+fmt.Println(" loading config")
+	cfg, _ :=  config.MakeConfig()
+	fmt.Println("config loaded", cfg)
+
 	startTime = time.Now()
 	myRouter := mux.NewRouter().StrictSlash(true)
 
@@ -137,7 +141,8 @@ func HandleRequests() {
 	myRouter.HandleFunc("/api/login", login).Methods("POST")
 	secure.HandleFunc("/api/logout", logout).Methods("GET")
 
-	listenAddr := fmt.Sprintf("%s:%d", config.Cfg.Server.Addr, config.Cfg.Server.Port)
+	listenAddr := fmt.Sprintf("%s:%d",cfg.Server.Host, cfg.Server.Port)
+	fmt.Println("running on", cfg.Server.Host,":", cfg.Server.Port)
 
 	log.Fatal(http.ListenAndServe(listenAddr, myRouter))
 }

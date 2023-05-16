@@ -1,6 +1,7 @@
 package comment
 
 import (
+	"FaRyuk/config"
 	"FaRyuk/internal/types"
 	"context"
 	"log"
@@ -14,29 +15,32 @@ import (
 
 type MongoCommentRepository struct {
 	client *mongo.Client
+	config *config.Config
 }
 
 // TODO move all hardcoded strings (client url, db name, collection name) to a config file and inject it to the repo)
-func NewMongoCommentRepository() *MongoCommentRepository {
+func NewMongoCommentRepository(config *config.Config) *MongoCommentRepository {
 	return &MongoCommentRepository{
 		client: createMongoDBCLient(),
+		config: config,
 	}
 }
 
 // InsertComment : inserts comment in the database
-func (repo  *MongoCommentRepository) InsertComment(comment *types.Comment) error {
-	if(comment.ID==""){
+func (repo *MongoCommentRepository) InsertComment(comment *types.Comment, done chan<- bool)  {
+	defer close(done)
+	if comment.ID == "" {
 		comment.ID = uuid.NewString() // Generate a new UUID for the comment
 	}
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	_, err := collection.InsertOne(context.TODO(), comment)
-	return err
+	done <- err == nil
 }
 
 // GetComments : gets all comments
-func (repo  *MongoCommentRepository) GetComments(comments chan<- types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetComments(comments chan<- types.CommentsWithErrorType) {
 	var results []types.Comment
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	findOptions := options.Find()
 	cur, err := collection.Find(context.TODO(), bson.D{}, findOptions)
 	if err != nil {
@@ -64,8 +68,8 @@ func (repo  *MongoCommentRepository) GetComments(comments chan<- types.CommentsW
 }
 
 // RemoveCommentByID : removes comment by ID
-func (repo  *MongoCommentRepository) RemoveCommentByID(id string, done chan<- error) {
-	collection := repo.client.Database("faryuk").Collection("comment")
+func (repo *MongoCommentRepository) RemoveCommentByID(id string, done chan<- error) {
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	_, err := collection.DeleteOne(context.Background(), bson.M{"id": id})
 	if err != nil {
 		done <- err
@@ -75,16 +79,16 @@ func (repo  *MongoCommentRepository) RemoveCommentByID(id string, done chan<- er
 }
 
 // UpdateComment : updates comment
-func (repo  *MongoCommentRepository) UpdateComment(r *types.Comment, done chan<- bool) {
-	collection := repo.client.Database("faryuk").Collection("comment")
+func (repo *MongoCommentRepository) UpdateComment(r *types.Comment, done chan<- bool) {
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	_, err := collection.UpdateOne(context.Background(), bson.M{"id": r.ID}, bson.M{"$set": r})
 	done <- err == nil
 }
 
 // GetCommentByID : retrieves comment by ID
-func (repo  *MongoCommentRepository) GetCommentByID(id string, result chan<- types.CommentWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentByID(id string, result chan<- types.CommentWithErrorType) {
 	var comment types.Comment
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	err := collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&comment)
 	if err != nil {
 		result <- types.CommentWithErrorType{Comment: types.Comment{}, Err: err}
@@ -94,11 +98,11 @@ func (repo  *MongoCommentRepository) GetCommentByID(id string, result chan<- typ
 }
 
 // GetCommentsByText : search comments by regular expression
-func (repo  *MongoCommentRepository) GetCommentsByText(search string, result chan types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByText(search string, result chan types.CommentsWithErrorType) {
 	defer close(result)
 	var results []types.Comment
 
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	filter := bson.M{"content": bson.M{"$regex": ".*" + search + ".*"}}
 
 	cur, err := collection.Find(context.TODO(), filter)
@@ -127,10 +131,10 @@ func (repo  *MongoCommentRepository) GetCommentsByText(search string, result cha
 }
 
 // GetCommentsByTextAndOwner : searchs for comments containing a particular text and that could be accessed by the current user
-func (repo  *MongoCommentRepository) GetCommentsByTextAndOwner(search string, idUser string, result chan types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByTextAndOwner(search string, idUser string, result chan types.CommentsWithErrorType) {
 	defer close(result)
 	var results []types.Comment
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	filter := bson.M{"content": bson.M{"$regex": ".*" + search + ".*"}}
 
 	cur, err := collection.Find(context.Background(), filter)
@@ -161,11 +165,11 @@ func (repo  *MongoCommentRepository) GetCommentsByTextAndOwner(search string, id
 }
 
 // GetCommentsByResultID : get all comments for a given result ID
-func (repo  *MongoCommentRepository) GetCommentsByResultID(idResult string, result chan<- types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByResultID(idResult string, result chan<- types.CommentsWithErrorType) {
 	defer close(result)
 	var results []types.Comment
 
-	collection := repo.client.Database("faryuk").Collection("comment")
+	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 
 	cur, err := collection.Find(context.Background(), bson.M{"idResult": idResult})
 
@@ -194,26 +198,24 @@ func (repo  *MongoCommentRepository) GetCommentsByResultID(idResult string, resu
 
 }
 
-func createMongoDBCLient()*mongo.Client {
+func createMongoDBCLient() *mongo.Client {
 	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://localhost:27017"))
-		if err != nil {
-			log.Fatal(err)
-		}
-	
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-	
-		err = client.Connect(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return client
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client
 }
 
-
-
 // CloseConnection : closes connection with mongo db
-func (repo  *MongoCommentRepository) CloseConnection() {
+func (repo *MongoCommentRepository) CloseConnection() {
 	err := repo.client.Disconnect(context.TODO())
 	if err != nil {
 		log.Fatal(err)

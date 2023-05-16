@@ -1,7 +1,8 @@
 package api
 
 import (
-	"FaRyuk/internal/db"
+	"FaRyuk/config"
+	"FaRyuk/database"
 	"FaRyuk/internal/types"
 	"log"
 	"net/http"
@@ -17,7 +18,12 @@ func AddCommentEndpoints(secure *mux.Router) {
 }
 
 func ListComments(w http.ResponseWriter, _ *http.Request) {
-	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	cfg, confErr := config.MakeConfig()
+	if confErr != nil {
+		log.Fatal(confErr)
+	}
+
+	dbHandler, err := database.CreateDbHandler(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +47,11 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentID := vars["id"]
 
-	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	cfg, confErr := config.MakeConfig()
+	if confErr != nil {
+		log.Fatal(confErr)
+	}
+	dbHandler, err := database.CreateDbHandler(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +81,11 @@ func GetCommentsByResultID(w http.ResponseWriter, r *http.Request) {
 	// Get the result ID from the request URL parameters
 	vars := mux.Vars(r)
 	resultID := vars["id"]
-	dbHandler, err := db.CreateDbHandler(db.Config{CommentDbType: "mongo"})
+	cfg, confErr := config.MakeConfig()
+	if confErr != nil {
+		log.Fatal(confErr)
+	}
+	dbHandler, err := database.CreateDbHandler(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

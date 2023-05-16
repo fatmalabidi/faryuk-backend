@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"FaRyuk/internal/db/models"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
+	"FaRyuk/models"
 	"FaRyuk/pkg"
 
 	"github.com/google/uuid"

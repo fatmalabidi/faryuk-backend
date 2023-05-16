@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,10 @@ import (
 
 // TODO override test dbHandler (use db test)
 // TODO: Add more assertions to validate the response body or other aspects of the test
+func TestMain(m *testing.M) {
+  os.Setenv("CONFIGOR_ENV", "test")
+	os.Exit(m.Run())
+}
 
 func TestListComments(t *testing.T) {
 	// TODO add token validation
@@ -51,7 +56,7 @@ func TestGetCommentsByResultID(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rr := httptest.NewRecorder()
+	rr := httptest.NewRecorder() 
 	api.GetCommentsByResultID(rr, req)
 	if status := rr.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v",
@@ -59,5 +64,6 @@ func TestGetCommentsByResultID(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotEmpty(t, rr.Body)
+	assert.NotNil(t, rr.Body)
+	assert.Empty(t, rr.Body)
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/types"
 	"FaRyuk/models"
 )
@@ -42,5 +43,5 @@ func getInfos(w http.ResponseWriter, r *http.Request) {
 
 	results.Uptime = uptime
 
-	returnSuccess(&w, results)
+	utils.ReturnSuccess(&w, results)
 }

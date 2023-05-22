@@ -14,7 +14,7 @@ WORKDIR ${GOPATH}/src/faryuk
 
 RUN go mod download
 RUN go build -o ./faryuk -buildvcs=false
-RUN mkdir ./ressources ./ressources/dirs ./ressources/ports  ./ressources/subdomains
+RUN mkdir -p ./ressources ./ressources/dirs ./ressources/ports  ./ressources/subdomains
 
 # Set entrypoint and working directory
 ENTRYPOINT ["./faryuk", "serve"]

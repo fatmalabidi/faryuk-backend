@@ -28,7 +28,7 @@ func LaunchServe(cmd *cobra.Command, args []string) {
 func init() {
 	rootCmd.AddCommand(serveCmd)
 	// global
-	cfg, _ :=  config.MakeConfig()
+	cfg, _ := config.MakeConfig()
 	serveCmd.PersistentFlags().StringVarP(&wapiaddr, "listen-api-addr", "L", cfg.Server.Host, "Listen address")
 	serveCmd.PersistentFlags().IntVarP(&wapiport, "listen-api-port", "P", cfg.Server.Port, "Listen port")
 	err := cobra.MarkFlagRequired(serveCmd.Flags(), "serve")

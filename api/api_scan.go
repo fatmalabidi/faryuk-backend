@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/operations"
 	"FaRyuk/models"
@@ -30,14 +31,14 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	unmarshal := func(src []byte, dest any, errStr string) error {
 		err := json.Unmarshal(src, dest)
 		if err != nil {
-			writeInternalError(&w, errStr)
+			utils.WriteInternalError(&w, errStr)
 			return err
 		}
 		return nil
@@ -85,7 +86,7 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid webPort")
+		utils.WriteInternalError(&w, "Please provide a valid webPort")
 		return
 	}
 
@@ -101,7 +102,7 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 
 	_, idUser, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Identity error")
+		utils.WriteInternalError(&w, "Identity error")
 		return
 	}
 
@@ -116,7 +117,7 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 		excludedText,
 		scanners)
 
-	returnSuccess(&w, "Webscan started")
+	utils.ReturnSuccess(&w, "Webscan started")
 }
 
 func scanAndSave(idUser string, host string, groupID string, portlist string, dirlist string, rescan bool, scanners []string) {
@@ -210,20 +211,20 @@ func doScan(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var host string
 	err = json.Unmarshal(objmap["host"], &host)
 	if err != nil || host == "" {
-		writeInternalError(&w, "Please provide a valid host")
+		utils.WriteInternalError(&w, "Please provide a valid host")
 		return
 	}
 
@@ -236,28 +237,28 @@ func doScan(w http.ResponseWriter, r *http.Request) {
 	var dirlistFilename string
 	err = json.Unmarshal(objmap["dirlist"], &dirlistFilename)
 	if err != nil || dirlistFilename == "" {
-		writeInternalError(&w, "Please provide a valid dirlist")
+		utils.WriteInternalError(&w, "Please provide a valid dirlist")
 		return
 	}
 
 	var portlistFilename string
 	err = json.Unmarshal(objmap["portlist"], &portlistFilename)
 	if err != nil || portlistFilename == "" {
-		writeInternalError(&w, "Please provide a valid portlist")
+		utils.WriteInternalError(&w, "Please provide a valid portlist")
 		return
 	}
 
 	var rescan bool
 	err = json.Unmarshal(objmap["rescan"], &rescan)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid rescan option")
+		utils.WriteInternalError(&w, "Please provide a valid rescan option")
 		return
 	}
 
 	var scanners []string
 	err = json.Unmarshal(objmap["scanners"], &scanners)
 	if err != nil && objmap["scanners"] != nil {
-		writeInternalError(&w, err.Error())
+		utils.WriteInternalError(&w, err.Error())
 		return
 	}
 
@@ -268,28 +269,28 @@ func doScan(w http.ResponseWriter, r *http.Request) {
 
 	backgroundScans++
 	go scanAndSave(idUser, html.EscapeString(host), groupID, portlistFilename, dirlistFilename, rescan, scanners)
-	returnSuccess(&w, "Scan started")
+	utils.ReturnSuccess(&w, "Scan started")
 }
 
 func doMultipleScan(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		writeInternalError(&w, "Form parsing error")
+		utils.WriteInternalError(&w, "Form parsing error")
 		return
 	}
 	_, idUser, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Identity error")
+		utils.WriteInternalError(&w, "Identity error")
 		return
 	}
 
 	err = r.ParseMultipartForm(32 << 20)
 	if err != nil {
-		writeInternalError(&w, fmt.Sprintf("%s", err))
+		utils.WriteInternalError(&w, fmt.Sprintf("%s", err))
 		return
 	}
 	file, _, err := r.FormFile("hosts")
 	if err != nil {
-		writeInternalError(&w, fmt.Sprintf("%s", err))
+		utils.WriteInternalError(&w, fmt.Sprintf("%s", err))
 		return
 	}
 	defer file.Close()
@@ -301,7 +302,7 @@ func doMultipleScan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		writeInternalError(&w, "Internal error")
+		utils.WriteInternalError(&w, "Internal error")
 		return
 	}
 
@@ -314,7 +315,7 @@ func doMultipleScan(w http.ResponseWriter, r *http.Request) {
 	portlistFilename := r.PostForm["portlist"][0]
 	scanners := r.PostForm["scanners"]
 	go scanMultipleAndSave(idUser, hosts, groupID, portlistFilename, dirlistFilename, rescan, scanners)
-	returnSuccess(&w, "Scan multiple started")
+	utils.ReturnSuccess(&w, "Scan multiple started")
 }
 
 func scanMultipleAndSave(idUser string, hosts []string,
@@ -353,20 +354,20 @@ func doPortScan(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var id string
 	err = json.Unmarshal(objmap["id"], &id)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid id")
+		utils.WriteInternalError(&w, "Please provide a valid id")
 		return
 	}
 
@@ -374,27 +375,27 @@ func doPortScan(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(objmap["scannedPort"], &scannedPort)
 	if err != nil {
 		fmt.Println(err)
-		writeInternalError(&w, "Please provide a valid scannedPort")
+		utils.WriteInternalError(&w, "Please provide a valid scannedPort")
 		return
 	}
 
 	port, err := strconv.Atoi(scannedPort)
 	if err != nil {
 		fmt.Println(err)
-		writeInternalError(&w, "Please provide a valid port")
+		utils.WriteInternalError(&w, "Please provide a valid port")
 		return
 	}
 
 	var scanners []string
 	err = json.Unmarshal(objmap["scanners"], &scanners)
 	if err != nil {
-		writeInternalError(&w, err.Error())
+		utils.WriteInternalError(&w, err.Error())
 		return
 	}
 
 	_, idUser, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Identity error")
+		utils.WriteInternalError(&w, "Identity error")
 		return
 	}
 
@@ -403,7 +404,7 @@ func doPortScan(w http.ResponseWriter, r *http.Request) {
 		port,
 		scanners)
 
-	returnSuccess(&w, "port runner scan started")
+	utils.ReturnSuccess(&w, "port runner scan started")
 }
 
 func doDomainScan(w http.ResponseWriter, r *http.Request) {
@@ -411,20 +412,20 @@ func doDomainScan(w http.ResponseWriter, r *http.Request) {
 
 	_, idUser, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Identity error")
+		utils.WriteInternalError(&w, "Identity error")
 		return
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	unmarshal := func(src []byte, dest any, errStr string) error {
 		err := json.Unmarshal(src, dest)
 		if err != nil {
-			writeInternalError(&w, errStr)
+			utils.WriteInternalError(&w, errStr)
 			return err
 		}
 		return nil
@@ -446,19 +447,19 @@ func doDomainScan(w http.ResponseWriter, r *http.Request) {
 
 	var dirlistFilename string
 	if unmarshal(objmap["dirlist"], &dirlistFilename, "Please provide a valid dirlist") != nil || dirlistFilename == "" {
-		writeInternalError(&w, "Please provide a valid dirlist")
+		utils.WriteInternalError(&w, "Please provide a valid dirlist")
 		return
 	}
 
 	var portlistFilename string
 	if unmarshal(objmap["portlist"], &portlistFilename, "Please provide a valid portlist") != nil || portlistFilename == "" {
-		writeInternalError(&w, "Please provide a valid portlist")
+		utils.WriteInternalError(&w, "Please provide a valid portlist")
 		return
 	}
 
 	var dnslistFilename string
 	if unmarshal(objmap["dnslist"], &dnslistFilename, "Please provide a valid dnslist") != nil || dnslistFilename == "" {
-		writeInternalError(&w, "Please provide a valid dnslist")
+		utils.WriteInternalError(&w, "Please provide a valid dnslist")
 		return
 	}
 
@@ -487,20 +488,20 @@ func doDomainScan(w http.ResponseWriter, r *http.Request) {
 		dirlistFilename, resolver,
 		wildcard, rescan, scanners)
 
-	returnSuccess(&w, "Scan domain started")
+	utils.ReturnSuccess(&w, "Scan domain started")
 }
 
 func getDnsLists(w http.ResponseWriter, r *http.Request) {
 	var dnsList = helper.GetDNSlists()
-	returnSuccess(&w, dnsList)
+	utils.ReturnSuccess(&w, dnsList)
 }
 
 func getPortLists(w http.ResponseWriter, r *http.Request) {
 	var portlist = helper.GetPortlists()
-	returnSuccess(&w, portlist)
+	utils.ReturnSuccess(&w, portlist)
 }
 
 func getWordLists(w http.ResponseWriter, r *http.Request) {
 	var wordlist = helper.GetWordlists()
-	returnSuccess(&w, wordlist)
+	utils.ReturnSuccess(&w, wordlist)
 }

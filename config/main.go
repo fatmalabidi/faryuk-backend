@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"runtime"
@@ -16,7 +15,6 @@ func MakeConfig() (*Config, error) {
 	newConfig := configor.New(&configor.Config{})
 
 	getConfigFile := func() string {
-		 fmt.Println("ENVIRONNEMENT",getEnvironment())
 		switch getEnvironment() {
 		case "test":
 			configFilePath = "./config.test.yml"
@@ -32,8 +30,6 @@ func MakeConfig() (*Config, error) {
 
 	conf := new(Config)
 	err := newConfig.Load(conf, getConfigFile())
-	fmt.Println("CONFIG LOADED FOR ENV: \nCONFIGOR_ENV=", os.Getenv("CONFIGOR_ENV"), "\nconf=",&conf)
-	fmt.Println("ERROR:", err)
 	return conf, err
 }
 

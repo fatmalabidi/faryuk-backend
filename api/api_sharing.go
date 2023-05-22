@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/sharing"
 	"FaRyuk/internal/types"
 	"FaRyuk/models"
@@ -30,27 +31,27 @@ func shareResult(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var sharedWith string
 	err = json.Unmarshal(objmap["idUser"], &sharedWith)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'idUser'")
+		utils.WriteInternalError(&w, "Please provide a 'idUser'")
 		return
 	}
 
 	var idResult string
 	err = json.Unmarshal(objmap["idResult"], &idResult)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'idResult'")
+		utils.WriteInternalError(&w, "Please provide a 'idResult'")
 		return
 	}
 	s := sharing.NewSharing(idUser, idResult, sharedWith)
@@ -60,10 +61,10 @@ func shareResult(w http.ResponseWriter, r *http.Request) {
 	err = dbHandler.InsertSharing(s)
 
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
-	returnSuccess(&w, "Inserted successfully")
+	utils.ReturnSuccess(&w, "Inserted successfully")
 }
 
 func acceptSharing(w http.ResponseWriter, r *http.Request) {
@@ -82,12 +83,12 @@ func acceptSharing(w http.ResponseWriter, r *http.Request) {
 
 	s, err := dbHandler.GetSharingByID(idSharing)
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
 	if s.UserID != idUser {
-		writeForbidden(&w, "Privilege error")
+		utils.WriteForbidden(&w, "Privilege error")
 		return
 	}
 
@@ -95,14 +96,14 @@ func acceptSharing(w http.ResponseWriter, r *http.Request) {
 	ok := dbHandler.UpdateSharing(&s)
 
 	if !ok {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
 	res := dbHandler.GetResultByID(s.ResultID)
 
 	if res == nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
@@ -111,10 +112,10 @@ func acceptSharing(w http.ResponseWriter, r *http.Request) {
 	ok = dbHandler.UpdateResult(res)
 
 	if !ok {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
-	returnSuccess(&w, "Accepted successfully")
+	utils.ReturnSuccess(&w, "Accepted successfully")
 }
 
 func declineSharing(w http.ResponseWriter, r *http.Request) {
@@ -133,12 +134,12 @@ func declineSharing(w http.ResponseWriter, r *http.Request) {
 
 	s, err := dbHandler.GetSharingByID(idSharing)
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
 	if s.UserID != idUser {
-		writeForbidden(&w, "Privilege error")
+		utils.WriteForbidden(&w, "Privilege error")
 		return
 	}
 
@@ -146,11 +147,11 @@ func declineSharing(w http.ResponseWriter, r *http.Request) {
 	ok := dbHandler.UpdateSharing(&s)
 
 	if !ok {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
-	returnSuccess(&w, "Declined successfully")
+	utils.ReturnSuccess(&w, "Declined successfully")
 }
 
 func getPending(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +165,7 @@ func getPending(w http.ResponseWriter, r *http.Request) {
 	sharings, err := dbHandler.GetSharingsByUser(idUser)
 
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 	results := make([]types.Sharing, 0)
@@ -185,5 +186,5 @@ func getPending(w http.ResponseWriter, r *http.Request) {
 		results = append(results, sharings[idx])
 	}
 
-	returnSuccess(&w, results)
+	utils.ReturnSuccess(&w, results)
 }

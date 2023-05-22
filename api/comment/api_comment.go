@@ -1,6 +1,7 @@
-package api
+package comment
 
 import (
+	"FaRyuk/api/utils"
 	"FaRyuk/config"
 	"FaRyuk/database"
 	"FaRyuk/internal/types"
@@ -14,10 +15,9 @@ import (
 func AddCommentEndpoints(secure *mux.Router) {
 	secure.HandleFunc("/api/v1/comments", ListComments).Methods(http.MethodGet)
 	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodDelete)
-	secure.HandleFunc("/api/v1/comments/{id}", GetCommentsByResultID).Methods(http.MethodGet)
 }
 
-func ListComments(w http.ResponseWriter, _ *http.Request) {
+func ListComments(w http.ResponseWriter, rr *http.Request) {
 	cfg, confErr := config.MakeConfig()
 	if confErr != nil {
 		log.Fatal(confErr)
@@ -28,18 +28,24 @@ func ListComments(w http.ResponseWriter, _ *http.Request) {
 		log.Fatal(err)
 	}
 	defer dbHandler.CloseConnection()
-
+	resultID := rr.URL.Query().Get("resultID")
+	// FIXME : should use the same driver methor (it's uo to the driver to checkout all possible filters
+	// The driver will take a filter object as paramater that should be validated in the service layer and appliyed in the db
 	commentsChan := make(chan types.CommentsWithErrorType)
-	go dbHandler.GetComments(commentsChan)
+	if resultID != "" {
+		go dbHandler.GetCommentsByResultID(resultID, commentsChan)
+	} else {
+		go dbHandler.GetComments(commentsChan)
+	}
 
 	result := <-commentsChan
 
 	if result.Err != nil {
-		writeInternalError(&w, result.Err.Error())
+		utils.WriteInternalError(&w, result.Err.Error())
 		return
 	}
 
-	returnSuccess(&w, result.Comments)
+	utils.ReturnSuccess(&w, result.Comments)
 }
 
 func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
@@ -68,43 +74,10 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		// If an error occurred, return an appropriate HTTP response
-		writeInternalError(&w, err.Error())
+		utils.WriteInternalError(&w, err.Error())
 		return
 	}
 
 	// If the operation was successful, return a success response
-	returnSuccess(&w, nil)
-}
-
-// GetCommentByResultIDget the comments list for a result
-func GetCommentsByResultID(w http.ResponseWriter, r *http.Request) {
-	// Get the result ID from the request URL parameters
-	vars := mux.Vars(r)
-	resultID := vars["id"]
-	cfg, confErr := config.MakeConfig()
-	if confErr != nil {
-		log.Fatal(confErr)
-	}
-	dbHandler, err := database.CreateDbHandler(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer dbHandler.CloseConnection()
-
-	// Create a channel to receive the result of the database operation
-	commentsChan := make(chan types.CommentsWithErrorType)
-
-	// Call the GetCommentsByResult method asynchronously
-	go dbHandler.GetCommentsByResultID(resultID, commentsChan)
-
-	// Wait for the database operation to complete and check for errors
-	result := <-commentsChan
-	if result.Err != nil {
-		// If an error occurred, return an appropriate HTTP response
-		writeInternalError(&w, result.Err.Error())
-		return
-	}
-
-	// If the operation was successful, return a success response with the list of comments
-	returnSuccess(&w, result.Comments)
+	utils.ReturnSuccess(&w, nil)
 }

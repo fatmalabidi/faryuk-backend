@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
@@ -60,7 +61,7 @@ func getResults(w http.ResponseWriter, r *http.Request) {
 	if searchMap["group"] != "" {
 		group, err := dbHandler.GetGroupsByName(searchMap["group"])
 		if err != nil {
-			writeInternalError(&w, dbError)
+			utils.WriteInternalError(&w, dbError)
 			return
 		}
 		searchMap["group"] = group.ID
@@ -73,15 +74,15 @@ func getResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 	if len(results) == 0 {
-		returnSuccess(&w, results)
+		utils.ReturnSuccess(&w, results)
 		return
 	}
 
-	returnSuccess(&w, results)
+	utils.ReturnSuccess(&w, results)
 }
 
 func countResults(w http.ResponseWriter, r *http.Request) {
@@ -111,10 +112,10 @@ func countResults(w http.ResponseWriter, r *http.Request) {
 		cntResults, err = dbHandler.CountResultsBySearchAndOwner(searchMap, group.ToIDsArray(user.Groups), idUser)
 	}
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
-	returnSuccess(&w, cntResults)
+	utils.ReturnSuccess(&w, cntResults)
 }
 
 func getResultByID(w http.ResponseWriter, r *http.Request) {
@@ -126,11 +127,11 @@ func getResultByID(w http.ResponseWriter, r *http.Request) {
 
 	result := dbHandler.GetResultByID(id)
 	if result == nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
-	returnSuccess(&w, *result)
+	utils.ReturnSuccess(&w, *result)
 }
 
 func deleteResultByID(w http.ResponseWriter, r *http.Request) {
@@ -141,7 +142,7 @@ func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 
 	result := dbHandler.GetResultByID(id)
 	if result == nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
@@ -152,11 +153,11 @@ func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 
 	res := dbHandler.RemoveByID(id)
 	if !res {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
-	returnSuccess(&w, "Deleted successfully")
+	utils.ReturnSuccess(&w, "Deleted successfully")
 }
 
 func deleteTag(w http.ResponseWriter, r *http.Request) {
@@ -166,33 +167,33 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var idResult string
 	err = json.Unmarshal(objmap["idResult"], &idResult)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'content'")
+		utils.WriteInternalError(&w, "Please provide a 'content'")
 		return
 	}
 
 	var tag string
 	err = json.Unmarshal(objmap["tag"], &tag)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'content'")
+		utils.WriteInternalError(&w, "Please provide a 'content'")
 		return
 	}
 
 	result := dbHandler.GetResultByID(idResult)
 	if result == nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
@@ -200,9 +201,9 @@ func deleteTag(w http.ResponseWriter, r *http.Request) {
 
 	ok := dbHandler.UpdateResult(result)
 	if !ok {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
-	returnSuccess(&w, "tag deleted successfully")
+	utils.ReturnSuccess(&w, "tag deleted successfully")
 }

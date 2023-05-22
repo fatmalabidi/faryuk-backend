@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/helper"
 	"FaRyuk/internal/types"
@@ -54,7 +55,7 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 	if searchMap["group"] != "" {
 		group, err := dbHandler.GetGroupsByName(searchMap["group"])
 		if err != nil {
-			writeInternalError(&w, dbError)
+			utils.WriteInternalError(&w, dbError)
 			return
 		}
 		searchMap["group"] = group.ID
@@ -67,15 +68,15 @@ func getHistory(w http.ResponseWriter, r *http.Request) {
 		results, err = dbHandler.GetHistoryRecordsBySearchAndOwner(searchMap, idUser, group.ToIDsArray(user.Groups), offset, pageSize)
 	}
 	if err != nil {
-		writeInternalError(&w, "Cannot retrieve history")
+		utils.WriteInternalError(&w, "Cannot retrieve history")
 		return
 	}
 	if len(results) == 0 {
-		returnSuccess(&w, results)
+		utils.ReturnSuccess(&w, results)
 		return
 	}
 
-	returnSuccess(&w, results)
+	utils.ReturnSuccess(&w, results)
 }
 
 func countHistory(w http.ResponseWriter, r *http.Request) {
@@ -105,10 +106,10 @@ func countHistory(w http.ResponseWriter, r *http.Request) {
 		cntRecords, err = dbHandler.CountHistoryRecordsBySearchAndOwner(searchMap, group.ToIDsArray(user.Groups), idUser)
 	}
 	if err != nil {
-		writeInternalError(&w, "Cannot retrieve history count")
+		utils.WriteInternalError(&w, "Cannot retrieve history count")
 		return
 	}
-	returnSuccess(&w, cntRecords)
+	utils.ReturnSuccess(&w, cntRecords)
 }
 
 func getHistoryRecordByID(w http.ResponseWriter, r *http.Request) {
@@ -120,10 +121,10 @@ func getHistoryRecordByID(w http.ResponseWriter, r *http.Request) {
 
 	result, err := dbHandler.GetHistoryRecordByID(id)
 	if err != nil {
-		writeInternalError(&w, "Cannot retrieve history record")
+		utils.WriteInternalError(&w, "Cannot retrieve history record")
 		return
 	}
-	returnSuccess(&w, result)
+	utils.ReturnSuccess(&w, result)
 }
 
 func deleteHistory(w http.ResponseWriter, r *http.Request) {
@@ -136,8 +137,8 @@ func deleteHistory(w http.ResponseWriter, r *http.Request) {
 
 	res := dbHandler.RemoveHistoryRecordByID(id)
 	if !res {
-		writeInternalError(&w, "Cannot delete history record")
+		utils.WriteInternalError(&w, "Cannot delete history record")
 		return
 	}
-	returnSuccess(&w, "History record deleted successfully")
+	utils.ReturnSuccess(&w, "History record deleted successfully")
 }

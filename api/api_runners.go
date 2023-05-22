@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/runner"
 	"FaRyuk/internal/types"
 	"FaRyuk/models"
@@ -34,72 +35,72 @@ func getRunners(w http.ResponseWriter, r *http.Request) {
 		runners, err = dbHandler.GetRunners()
 
 		if err != nil {
-			writeInternalError(&w, "Database error")
+			utils.WriteInternalError(&w, "Database error")
 			return
 		}
 	} else {
 		runners, err = dbHandler.GetRunnersByUserID(idUser)
 		if err != nil {
-			writeInternalError(&w, "Database error")
+			utils.WriteInternalError(&w, "Database error")
 			return
 		}
 	}
 
-	returnSuccess(&w, runners)
+	utils.ReturnSuccess(&w, runners)
 }
 
 func addRunner(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	_, idUser, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid identity")
+		utils.WriteInternalError(&w, "Please provide a valid identity")
 		return
 	}
 
 	var tag string
 	err = json.Unmarshal(objmap["tag"], &tag)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'tag'")
+		utils.WriteInternalError(&w, "Please provide a 'tag'")
 		return
 	}
 
 	var displayName string
 	err = json.Unmarshal(objmap["displayName"], &displayName)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'displayName'")
+		utils.WriteInternalError(&w, "Please provide a 'displayName'")
 		return
 	}
 
 	var cmdLine string
 	err = json.Unmarshal(objmap["cmd"], &cmdLine)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'cmd'")
+		utils.WriteInternalError(&w, "Please provide a 'cmd'")
 		return
 	}
 
 	var isWeb bool
 	err = json.Unmarshal(objmap["isWeb"], &isWeb)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'isWeb'")
+		utils.WriteInternalError(&w, "Please provide a 'isWeb'")
 		return
 	}
 
 	var isPort bool
 	err = json.Unmarshal(objmap["isPort"], &isPort)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'isPort'")
+		utils.WriteInternalError(&w, "Please provide a 'isPort'")
 		return
 	}
 
@@ -109,30 +110,30 @@ func addRunner(w http.ResponseWriter, r *http.Request) {
 	runner := runner.NewRunner(tag, displayName, strings.Split(cmdLine, " "), idUser, isWeb, isPort)
 	err = dbHandler.InsertRunner(runner)
 	if err != nil {
-		writeInternalError(&w, "Database error")
+		utils.WriteInternalError(&w, "Database error")
 		return
 	}
-	returnSuccess(&w, "Runner added")
+	utils.ReturnSuccess(&w, "Runner added")
 }
 
 func deleteRunner(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var id string
 	err = json.Unmarshal(objmap["id"], &id)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'id'")
+		utils.WriteInternalError(&w, "Please provide a 'id'")
 		return
 	}
 
@@ -141,8 +142,8 @@ func deleteRunner(w http.ResponseWriter, r *http.Request) {
 
 	err = dbHandler.RemoveRunnerByID(id)
 	if err != nil {
-		writeInternalError(&w, "Database error")
+		utils.WriteInternalError(&w, "Database error")
 		return
 	}
-	returnSuccess(&w, "Runner deleted")
+	utils.ReturnSuccess(&w, "Runner deleted")
 }

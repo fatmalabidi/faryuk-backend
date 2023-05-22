@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/types"
 	"FaRyuk/internal/user"
 	"FaRyuk/models"
@@ -37,40 +38,40 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 	var key string
 	err = json.Unmarshal(objmap["API_REGISTER_KEY"], &key)
 	if err != nil || key != APIRegisterKey {
-		writeForbidden(&w, "Please provide a valid API register key")
+		utils.WriteForbidden(&w, "Please provide a valid API register key")
 		return
 	}
 
 	var username string
 	err = json.Unmarshal(objmap["username"], &username)
 	if err != nil || username == "" {
-		writeInternalError(&w, "Please provide a valid 'username'")
+		utils.WriteInternalError(&w, "Please provide a valid 'username'")
 		return
 	}
 
 	var password string
 	err = json.Unmarshal(objmap["password"], &password)
 	if err != nil || password == "" {
-		writeInternalError(&w, "Please provide a 'password'")
+		utils.WriteInternalError(&w, "Please provide a 'password'")
 		return
 	}
 
 	var password2 string
 	err = json.Unmarshal(objmap["password2"], &password2)
 	if err != nil || password2 == "" || password != password2 {
-		writeInternalError(&w, "Passwords don't match")
+		utils.WriteInternalError(&w, "Passwords don't match")
 		return
 	}
 
@@ -84,7 +85,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("user from channel: ", usr)
 
 	// if usr != nil {
-	//   writeForbidden(&w, "User already exists")
+	//   utils.WriteForbidden(&w, "User already exists")
 	//   return
 	// }
 
@@ -92,9 +93,9 @@ func register(w http.ResponseWriter, r *http.Request) {
 	err = dbHandler.InsertUser(u)
 
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 	}
-	returnSuccess(&w, "User created succesfully")
+	utils.ReturnSuccess(&w, "User created succesfully")
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -102,27 +103,27 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var username string
 	err = json.Unmarshal(objmap["username"], &username)
 	if err != nil || username == "" {
-		writeInternalError(&w, "Please provide a valid 'username'")
+		utils.WriteInternalError(&w, "Please provide a valid 'username'")
 		return
 	}
 
 	var password string
 	err = json.Unmarshal(objmap["password"], &password)
 	if err != nil || password == "" {
-		writeInternalError(&w, "Please provide a 'password'")
+		utils.WriteInternalError(&w, "Please provide a 'password'")
 		return
 	}
 
@@ -135,21 +136,21 @@ func login(w http.ResponseWriter, r *http.Request) {
 	usr := <-c
 	fmt.Println("user from channel: ", usr)
 	// if usr == nil || !user.Login(usr, password) {
-	//   writeForbidden(&w, "Wrong password or username")
+	//   utils.WriteForbidden(&w, "Wrong password or username")
 	//   return
 	// }
 
 	token, err := user.GenerateJWT(&usr, JWTSecret)
 
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := http.Cookie{Name: jwtCookieName, Value: token, Expires: expiration, Path: "/"}
 	http.SetCookie(w, &cookie)
-	returnSuccess(&w, token)
+	utils.ReturnSuccess(&w, token)
 }
 
 func changePassword(w http.ResponseWriter, r *http.Request) {
@@ -157,26 +158,26 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	_, userID, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Invalide token")
+		utils.WriteInternalError(&w, "Invalide token")
 		return
 	}
 
 	var currentPassword string
 	err = json.Unmarshal(objmap["currentPassword"], &currentPassword)
 	if err != nil || currentPassword == "" {
-		writeInternalError(&w, "Please provide a 'current password'")
+		utils.WriteInternalError(&w, "Please provide a 'current password'")
 		return
 	}
 
@@ -185,37 +186,37 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 
 	usr := dbHandler.GetUserByID(userID)
 	if usr == nil || !user.Login(usr, currentPassword) {
-		writeForbidden(&w, "Wrong password")
+		utils.WriteForbidden(&w, "Wrong password")
 		return
 	}
 
 	var password string
 	err = json.Unmarshal(objmap["password"], &password)
 	if err != nil || password == "" {
-		writeInternalError(&w, "Please provide a 'password'")
+		utils.WriteInternalError(&w, "Please provide a 'password'")
 		return
 	}
 
 	var password2 string
 	err = json.Unmarshal(objmap["password2"], &password2)
 	if err != nil || password2 == "" || password != password2 {
-		writeInternalError(&w, "Passwords don't match")
+		utils.WriteInternalError(&w, "Passwords don't match")
 		return
 	}
 
 	usr.Password, err = user.GetHashedPassword(password)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = dbHandler.UpdateUser(usr)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
-	returnSuccess(&w, "Password changed successfully")
+	utils.ReturnSuccess(&w, "Password changed successfully")
 }
 
 func changeTheme(w http.ResponseWriter, r *http.Request) {
@@ -223,26 +224,26 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	_, userID, err := getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Invalide token")
+		utils.WriteInternalError(&w, "Invalide token")
 		return
 	}
 
 	var theme string
 	err = json.Unmarshal(objmap["theme"], &theme)
 	if err != nil || theme == "" {
-		writeInternalError(&w, "Please provide a 'theme'")
+		utils.WriteInternalError(&w, "Please provide a 'theme'")
 		return
 	}
 
@@ -251,23 +252,23 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 
 	usr := dbHandler.GetUserByID(userID)
 	if usr == nil {
-		writeForbidden(&w, "Wrong user")
+		utils.WriteForbidden(&w, "Wrong user")
 		return
 	}
 
 	usr.Theme = theme
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = dbHandler.UpdateUser(usr)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
-	returnSuccess(&w, "Theme changed successfully")
+	utils.ReturnSuccess(&w, "Theme changed successfully")
 }
 
 func whoami(w http.ResponseWriter, r *http.Request) {
@@ -286,7 +287,7 @@ func whoami(w http.ResponseWriter, r *http.Request) {
 
 	usr.Password = obfuscatedPassword
 
-	returnSuccess(&w, usr)
+	utils.ReturnSuccess(&w, usr)
 }
 
 func isAdmin(w http.ResponseWriter, r *http.Request) {
@@ -294,7 +295,7 @@ func isAdmin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	returnSuccess(&w, username == "admin")
+	utils.ReturnSuccess(&w, username == "admin")
 }
 
 func getUsername(w http.ResponseWriter, r *http.Request) {
@@ -307,10 +308,10 @@ func getUsername(w http.ResponseWriter, r *http.Request) {
 	usr := dbHandler.GetUserByID(idUser)
 
 	if usr == nil {
-		writeForbidden(&w, "User not found")
+		utils.WriteForbidden(&w, "User not found")
 		return
 	}
-	returnSuccess(&w, usr.Username)
+	utils.ReturnSuccess(&w, usr.Username)
 }
 
 func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
@@ -319,26 +320,26 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, unexpectedError)
+		utils.WriteInternalError(&w, unexpectedError)
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	_, _, err = getIdentity(&w, r)
 	if err != nil {
-		writeInternalError(&w, "Invalide token")
+		utils.WriteInternalError(&w, "Invalide token")
 		return
 	}
 
 	var groupid string
 	err = json.Unmarshal(objmap["idGroup"], &groupid)
 	if err != nil || groupid == "" {
-		writeInternalError(&w, "Please provide a 'groupid'")
+		utils.WriteInternalError(&w, "Please provide a 'groupid'")
 		return
 	}
 
@@ -347,14 +348,14 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 
 	group, err = dbHandler.GetGroupByID(groupid)
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
 	usrs, err := dbHandler.GetUsersByGroup(group)
 
 	if err != nil {
-		writeInternalError(&w, dbError)
+		utils.WriteInternalError(&w, dbError)
 		return
 	}
 
@@ -362,7 +363,7 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 		usrs[idx].Password = "**********"
 	}
 
-	returnSuccess(&w, usrs)
+	utils.ReturnSuccess(&w, usrs)
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
@@ -374,14 +375,14 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		usrs[idx].Password = "**********"
 	}
 
-	returnSuccess(&w, usrs)
+	utils.ReturnSuccess(&w, usrs)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := http.Cookie{Name: jwtCookieName, Value: "", Expires: expiration, Path: "/"}
 	http.SetCookie(w, &cookie)
-	returnSuccess(&w, "Logged off successfully")
+	utils.ReturnSuccess(&w, "Logged off successfully")
 }
 
 func verifyJWT(next http.Handler) http.Handler {
@@ -389,13 +390,13 @@ func verifyJWT(next http.Handler) http.Handler {
 		tokenCookie, err := r.Cookie(jwtCookieName)
 
 		if err != nil {
-			writeUnAuthorized(&w)
+			utils.WriteUnAuthorized(&w)
 			return
 		}
 
 		token := tokenCookie.Value
 		if !user.VerifyJWT(token, JWTSecret) {
-			writeForbidden(&w, "")
+			utils.WriteForbidden(&w, "")
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -407,18 +408,18 @@ func verifyAdmin(next http.Handler) http.Handler {
 		tokenCookie, err := r.Cookie(jwtCookieName)
 
 		if err != nil {
-			writeForbidden(&w, "Invalid token")
+			utils.WriteForbidden(&w, "Invalid token")
 			return
 		}
 
 		token := tokenCookie.Value
 		if !user.VerifyJWT(token, JWTSecret) {
-			writeForbidden(&w, "Invalid token")
+			utils.WriteForbidden(&w, "Invalid token")
 			return
 		}
 		username, _, err := user.GetUsername(token, JWTSecret)
 		if err != nil || username != "admin" {
-			writeForbidden(&w, "Invalid token")
+			utils.WriteForbidden(&w, "Invalid token")
 			return
 		}
 		next.ServeHTTP(w, r)

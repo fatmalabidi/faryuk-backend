@@ -1,14 +1,14 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"FaRyuk/api/comment"
+	"FaRyuk/api/utils"
 	"FaRyuk/config"
-	"FaRyuk/internal/types"
 	"FaRyuk/internal/user"
 
 	"github.com/google/uuid"
@@ -44,55 +44,23 @@ func getCookie(name string, r *http.Request) (string, error) {
 func getIdentity(w *http.ResponseWriter, r *http.Request) (string, string, error) {
 	token, err := getCookie(jwtCookieName, r)
 	if err != nil {
-		writeForbidden(w, "Cookie error")
+		utils.WriteForbidden(w, "Cookie error")
 		return "", "", err
 	}
 
 	username, idUser, err := user.GetUsername(token, JWTSecret)
 	if err != nil {
-		writeForbidden(w, "Authorization error")
+		utils.WriteForbidden(w, "Authorization error")
 		return "", "", err
 	}
 	return username, idUser, nil
 }
 
-func writeResponse(w *http.ResponseWriter, m types.JSONReturn) {
-	(*w).Header().Add("Content-Type", "application/json")
-	err := json.NewEncoder(*w).Encode(m)
-	if err != nil {
-		return
-	}
-}
-
-func writeForbidden(w *http.ResponseWriter, m string) {
-	(*w).WriteHeader(http.StatusForbidden)
-	writeResponse(w, types.JSONReturn{Status: "Forbidden", Body: m, Code: http.StatusForbidden})
-}
-
-func writeUnAuthorized(w *http.ResponseWriter) {
-	(*w).WriteHeader(http.StatusNotFound)
-	writeResponse(w, types.JSONReturn{Status: "UnAuthorized", Code: http.StatusUnauthorized})
-}
-
-func writeBadRequest(w *http.ResponseWriter) {
-	(*w).WriteHeader(http.StatusNotFound)
-	writeResponse(w, types.JSONReturn{Status: "BadRequest", Code: http.StatusBadRequest})
-}
-
-func writeInternalError(w *http.ResponseWriter, m string) {
-	(*w).WriteHeader(http.StatusInternalServerError)
-	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m, Code: http.StatusInternalServerError})
-}
-
-func returnSuccess(w *http.ResponseWriter, m interface{}) {
-	writeResponse(w, types.JSONReturn{Status: "Success", Code: http.StatusOK, Body: m})
-}
-
 // HandleRequests : set up routes for API
 func HandleRequests() {
 	initKeys()
-fmt.Println(" loading config")
-	cfg, _ :=  config.MakeConfig()
+	fmt.Println(" loading config")
+	cfg, _ := config.MakeConfig()
 	fmt.Println("config loaded", cfg)
 
 	startTime = time.Now()
@@ -120,7 +88,7 @@ fmt.Println(" loading config")
 	addSharingEndpoints(secure)
 
 	// Comments endpoints
-	AddCommentEndpoints(secure)
+	comment.AddCommentEndpoints(secure)
 
 	// Scans endpoints
 	addScanEndpoints(secure)
@@ -141,8 +109,8 @@ fmt.Println(" loading config")
 	myRouter.HandleFunc("/api/login", login).Methods("POST")
 	secure.HandleFunc("/api/logout", logout).Methods("GET")
 
-	listenAddr := fmt.Sprintf("%s:%d",cfg.Server.Host, cfg.Server.Port)
-	fmt.Println("running on", cfg.Server.Host,":", cfg.Server.Port)
+	listenAddr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+	fmt.Println("running on", cfg.Server.Host, ":", cfg.Server.Port)
 
 	log.Fatal(http.ListenAndServe(listenAddr, myRouter))
 }

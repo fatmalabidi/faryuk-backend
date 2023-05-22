@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/internal/group"
 	"FaRyuk/internal/types"
 	"FaRyuk/models"
@@ -36,7 +37,7 @@ func getGroups(w http.ResponseWriter, r *http.Request) {
 		groups, err = dbHandler.GetGroups()
 
 		if err != nil {
-			writeInternalError(&w, "Database error")
+			utils.WriteInternalError(&w, "Database error")
 			return
 		}
 	} else {
@@ -44,27 +45,27 @@ func getGroups(w http.ResponseWriter, r *http.Request) {
 		groups = user.Groups
 	}
 
-	returnSuccess(&w, groups)
+	utils.ReturnSuccess(&w, groups)
 }
 
 func addGroup(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var name string
 	err = json.Unmarshal(objmap["name"], &name)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'name'")
+		utils.WriteInternalError(&w, "Please provide a 'name'")
 		return
 	}
 
@@ -73,37 +74,37 @@ func addGroup(w http.ResponseWriter, r *http.Request) {
 
 	groupRes, err := dbHandler.GetGroupsByName(name)
 	if err == nil && groupRes.ID != "Dummy" {
-		writeInternalError(&w, "Group already exists")
+		utils.WriteInternalError(&w, "Group already exists")
 		return
 	}
 
 	group := group.NewGroup(name)
 	err = dbHandler.InsertGroup(*group)
 	if err != nil {
-		writeInternalError(&w, "Database error")
+		utils.WriteInternalError(&w, "Database error")
 		return
 	}
-	returnSuccess(&w, "Group added")
+	utils.ReturnSuccess(&w, "Group added")
 }
 
 func deleteGroup(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var id string
 	err = json.Unmarshal(objmap["id"], &id)
 	if err != nil {
-		writeInternalError(&w, "Please provide a 'id'")
+		utils.WriteInternalError(&w, "Please provide a 'id'")
 		return
 	}
 
@@ -112,37 +113,37 @@ func deleteGroup(w http.ResponseWriter, r *http.Request) {
 
 	err = dbHandler.RemoveGroupByID(id)
 	if err != nil {
-		writeInternalError(&w, "Database error")
+		utils.WriteInternalError(&w, "Database error")
 		return
 	}
-	returnSuccess(&w, "Group deleted")
+	utils.ReturnSuccess(&w, "Group deleted")
 }
 
 func addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var idGroup string
 	err = json.Unmarshal(objmap["idGroup"], &idGroup)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid group id")
+		utils.WriteInternalError(&w, "Please provide a valid group id")
 		return
 	}
 
 	var idUser string
 	err = json.Unmarshal(objmap["idUser"], &idUser)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid user id")
+		utils.WriteInternalError(&w, "Please provide a valid user id")
 		return
 	}
 
@@ -151,19 +152,19 @@ func addUserToGroup(w http.ResponseWriter, r *http.Request) {
 
 	group, err := dbHandler.GetGroupByID(idGroup)
 	if err != nil {
-		writeInternalError(&w, "Database error - No such group")
+		utils.WriteInternalError(&w, "Database error - No such group")
 		return
 	}
 
 	user := dbHandler.GetUserByID(idUser)
 	if user == nil {
-		writeInternalError(&w, "Database error - No such user")
+		utils.WriteInternalError(&w, "Database error - No such user")
 		return
 	}
 
 	for _, grp := range user.Groups {
 		if grp.ID == group.ID {
-			returnSuccess(&w, "User already in the group")
+			utils.ReturnSuccess(&w, "User already in the group")
 			return
 		}
 	}
@@ -171,38 +172,38 @@ func addUserToGroup(w http.ResponseWriter, r *http.Request) {
 
 	err = dbHandler.UpdateUser(user)
 	if err != nil {
-		writeInternalError(&w, fmt.Sprintf("%s", err))
+		utils.WriteInternalError(&w, fmt.Sprintf("%s", err))
 		return
 	}
 
-	returnSuccess(&w, "User added to group")
+	utils.ReturnSuccess(&w, "User added to group")
 }
 
 func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writeInternalError(&w, "Unexpected error")
+		utils.WriteInternalError(&w, "Unexpected error")
 		return
 	}
 
 	err = json.Unmarshal(body, &objmap)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid json")
+		utils.WriteInternalError(&w, "Please provide a valid json")
 		return
 	}
 
 	var idGroup string
 	err = json.Unmarshal(objmap["idGroup"], &idGroup)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid group id")
+		utils.WriteInternalError(&w, "Please provide a valid group id")
 		return
 	}
 
 	var idUser string
 	err = json.Unmarshal(objmap["idUser"], &idUser)
 	if err != nil {
-		writeInternalError(&w, "Please provide a valid user id")
+		utils.WriteInternalError(&w, "Please provide a valid user id")
 		return
 	}
 
@@ -211,7 +212,7 @@ func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 
 	user := dbHandler.GetUserByID(idUser)
 	if user == nil {
-		writeInternalError(&w, "Database error - No such user")
+		utils.WriteInternalError(&w, "Database error - No such user")
 		return
 	}
 
@@ -226,9 +227,9 @@ func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 	user.Groups = groups
 	err = dbHandler.UpdateUser(user)
 	if err != nil {
-		writeInternalError(&w, fmt.Sprintf("%s", err))
+		utils.WriteInternalError(&w, fmt.Sprintf("%s", err))
 		return
 	}
 
-	returnSuccess(&w, "User removed from group")
+	utils.ReturnSuccess(&w, "User removed from group")
 }

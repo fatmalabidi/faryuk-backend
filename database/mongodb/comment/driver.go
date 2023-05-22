@@ -27,14 +27,14 @@ func NewMongoCommentRepository(config *config.Config) *MongoCommentRepository {
 }
 
 // InsertComment : inserts comment in the database
-func (repo *MongoCommentRepository) InsertComment(comment *types.Comment, done chan<- bool)  {
+func (repo *MongoCommentRepository) InsertComment(comment *types.Comment, done chan<- error) {
 	defer close(done)
 	if comment.ID == "" {
 		comment.ID = uuid.NewString() // Generate a new UUID for the comment
 	}
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	_, err := collection.InsertOne(context.TODO(), comment)
-	done <- err == nil
+	done <- err
 }
 
 // GetComments : gets all comments
@@ -79,10 +79,10 @@ func (repo *MongoCommentRepository) RemoveCommentByID(id string, done chan<- err
 }
 
 // UpdateComment : updates comment
-func (repo *MongoCommentRepository) UpdateComment(r *types.Comment, done chan<- bool) {
+func (repo *MongoCommentRepository) UpdateComment(r *types.Comment, done chan<- error) {
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	_, err := collection.UpdateOne(context.Background(), bson.M{"id": r.ID}, bson.M{"$set": r})
-	done <- err == nil
+	done <- err
 }
 
 // GetCommentByID : retrieves comment by ID

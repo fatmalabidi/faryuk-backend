@@ -5,11 +5,11 @@ import (
 	"FaRyuk/config"
 	"FaRyuk/internal/types"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -35,8 +35,9 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 	db = comment.NewMongoCommentRepository(cfg)
-	initIDs()
+	defer db.CloseConnection()
 
+	initIDs()
 	err = setup()
 	if err != nil {
 		log.Fatal("error inserting test data")
@@ -45,7 +46,6 @@ func TestMain(m *testing.M) {
 
 	// Run the tests
 	exitCode := m.Run()
-
 	os.Exit(exitCode)
 }
 
@@ -70,7 +70,6 @@ func TestListComments(t *testing.T) {
 	err = json.Unmarshal(rr.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatal(err)
-		fmt.Println(err)
 	}
 
 	comments := response.Body
@@ -133,9 +132,78 @@ func TestGetCommentsByResultID(t *testing.T) {
 	}
 }
 
-func setup() error {
+func TestGetCommentsByText(t *testing.T) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s", "some-search-text"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	defer db.CloseConnection()
+	rr := httptest.NewRecorder()
+	comment_api.ListComments(rr, req)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.NotNil(t, rr.Body)
+	var comments []types.Comment
+	var response struct {
+		Body []types.Comment `json:"body"`
+	}
+
+	err = json.Unmarshal(rr.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(response.Body) == 0 {
+		t.Fail()
+	}
+	for _, com := range comments {
+		if com.Content != "some-search-text" {
+			t.Fail()
+		}
+	}
+}
+
+func TestGetCommentsByTextAndOwner(t *testing.T) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s&owner=%s", "some-search-text", "specefic-test-owner"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	comment_api.ListComments(rr, req)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v want %v",
+			status, http.StatusOK)
+	}
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.NotNil(t, rr.Body)
+	var comments []types.Comment
+	var response struct {
+		Body []types.Comment `json:"body"`
+	}
+
+	err = json.Unmarshal(rr.Body.Bytes(), &response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(response.Body) == 0 {
+		t.Fail()
+	}
+	for _, com := range comments {
+		if com.Content != "some-search-text" {
+			t.Fail()
+		}
+		if com.Content != "specefic-owner" {
+			t.Fail()
+		}
+	}
+}
+
+func setup() error {
 	for _, testData := range getCommentsTestData() {
 		done := make(chan error)
 

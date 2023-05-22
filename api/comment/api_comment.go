@@ -17,6 +17,12 @@ func AddCommentEndpoints(secure *mux.Router) {
 	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodDelete)
 }
 
+type CommentFilter struct {
+	ResultID   string `schema:"resultID"`
+	SearchText string `schema:"searchText"`
+	Owner      string `schema:"owner"`
+}
+
 func ListComments(w http.ResponseWriter, rr *http.Request) {
 	cfg, confErr := config.MakeConfig()
 	if confErr != nil {
@@ -29,17 +35,25 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 	}
 	defer dbHandler.CloseConnection()
 	resultID := rr.URL.Query().Get("resultID")
+	searchText := rr.URL.Query().Get("searchText")
+
 	// FIXME : should use the same driver methor (it's uo to the driver to checkout all possible filters
 	// The driver will take a filter object as paramater that should be validated in the service layer and appliyed in the db
 	commentsChan := make(chan types.CommentsWithErrorType)
 	if resultID != "" {
 		go dbHandler.GetCommentsByResultID(resultID, commentsChan)
+	} else if searchText != "" {
+		owner := rr.URL.Query().Get("owner")
+		if owner != "" {
+			go dbHandler.GetCommentsByTextAndOwner(searchText, owner, commentsChan)
+		} else {
+			go dbHandler.GetCommentsByText(searchText, commentsChan)
+		}
 	} else {
 		go dbHandler.GetComments(commentsChan)
 	}
 
 	result := <-commentsChan
-
 	if result.Err != nil {
 		utils.WriteInternalError(&w, result.Err.Error())
 		return

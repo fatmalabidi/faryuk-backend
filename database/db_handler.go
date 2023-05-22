@@ -19,13 +19,13 @@ type MainDb struct {
 
 type CommentHandler interface {
 	InsertComment(r *types.Comment, done chan<- error)
-	GetComments(comments chan<- types.CommentsWithErrorType)
+	GetComments(comments chan<- *types.CommentsWithErrorType)
 	RemoveCommentByID(id string, done chan<- error)
 	UpdateComment(r *types.Comment, done chan<- error)
-	GetCommentByID(id string, result chan<- types.CommentWithErrorType)
-	GetCommentsByText(search string, result chan types.CommentsWithErrorType)
-	GetCommentsByTextAndOwner(search string, idUser string, result chan types.CommentsWithErrorType)
-	GetCommentsByResultID(idResult string, result chan<- types.CommentsWithErrorType)
+	GetCommentByID(id string, result chan<- *types.CommentWithErrorType)
+	GetCommentsByText(search string, result chan *types.CommentsWithErrorType)
+	GetCommentsByTextAndOwner(search string, idUser string, result chan *types.CommentsWithErrorType)
+	GetCommentsByResultID(idResult string, result chan<- *types.CommentsWithErrorType)
 	CloseConnection()
 }
 

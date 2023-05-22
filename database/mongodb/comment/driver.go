@@ -38,33 +38,33 @@ func (repo *MongoCommentRepository) InsertComment(comment *types.Comment, done c
 }
 
 // GetComments : gets all comments
-func (repo *MongoCommentRepository) GetComments(comments chan<- types.CommentsWithErrorType) {
-	var results []types.Comment
+func (repo *MongoCommentRepository) GetComments(comments chan<- *types.CommentsWithErrorType) {
+	var results []*types.Comment
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	findOptions := options.Find()
 	cur, err := collection.Find(context.TODO(), bson.D{}, findOptions)
 	if err != nil {
-		comments <- types.CommentsWithErrorType{Comments: make([]types.Comment, 0), Err: err}
+		comments <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	for cur.Next(context.Background()) {
-		var elem types.Comment
+		var elem *types.Comment
 		err := cur.Decode(&elem)
 		if err != nil {
-			comments <- types.CommentsWithErrorType{Comments: make([]types.Comment, 0), Err: err}
+			comments <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 			return
 		}
 		results = append(results, elem)
 	}
 
 	if err := cur.Err(); err != nil {
-		comments <- types.CommentsWithErrorType{Comments: make([]types.Comment, 0), Err: err}
+		comments <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	cur.Close(context.Background())
-	comments <- types.CommentsWithErrorType{Comments: results, Err: nil}
+	comments <- &types.CommentsWithErrorType{Comments: results, Err: nil}
 }
 
 // RemoveCommentByID : removes comment by ID
@@ -86,68 +86,68 @@ func (repo *MongoCommentRepository) UpdateComment(r *types.Comment, done chan<- 
 }
 
 // GetCommentByID : retrieves comment by ID
-func (repo *MongoCommentRepository) GetCommentByID(id string, result chan<- types.CommentWithErrorType) {
-	var comment types.Comment
+func (repo *MongoCommentRepository) GetCommentByID(id string, result chan<- *types.CommentWithErrorType) {
+	var comment *types.Comment
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	err := collection.FindOne(context.Background(), bson.M{"id": id}).Decode(&comment)
 	if err != nil {
-		result <- types.CommentWithErrorType{Comment: types.Comment{}, Err: err}
+		result <- &types.CommentWithErrorType{Comment: &types.Comment{}, Err: err}
 	} else {
-		result <- types.CommentWithErrorType{Comment: comment, Err: nil}
+		result <- &types.CommentWithErrorType{Comment: comment, Err: nil}
 	}
 }
 
 // GetCommentsByText : search comments by regular expression
-func (repo *MongoCommentRepository) GetCommentsByText(search string, result chan types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByText(search string, result chan *types.CommentsWithErrorType) {
 	defer close(result)
-	var results []types.Comment
+	var results []*types.Comment
 
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	filter := bson.M{"content": bson.M{"$regex": ".*" + search + ".*"}}
 
 	cur, err := collection.Find(context.TODO(), filter)
 	if err != nil {
-		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	for cur.Next(context.Background()) {
-		var elem types.Comment
+		var elem *types.Comment
 		err := cur.Decode(&elem)
 		if err != nil {
-			result <- types.CommentsWithErrorType{Comments: make([]types.Comment, 0), Err: err}
+			result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 			return
 		}
 		results = append(results, elem)
 	}
 
 	if err := cur.Err(); err != nil {
-		result <- types.CommentsWithErrorType{Comments: make([]types.Comment, 0), Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 	// cur.Close(context.Background())
-	result <- types.CommentsWithErrorType{Comments: results, Err: nil}
+	result <- &types.CommentsWithErrorType{Comments: results, Err: nil}
 
 }
 
 // GetCommentsByTextAndOwner : searchs for comments containing a particular text and that could be accessed by the current user
-func (repo *MongoCommentRepository) GetCommentsByTextAndOwner(search string, idUser string, result chan types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByTextAndOwner(search string, idUser string, result chan *types.CommentsWithErrorType) {
 	defer close(result)
-	var results []types.Comment
+	var results []*types.Comment
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 	filter := bson.M{"content": bson.M{"$regex": ".*" + search + ".*"}}
 
 	cur, err := collection.Find(context.Background(), filter)
 	if err != nil {
-		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	for cur.Next(context.Background()) {
-		var elem types.Comment
+		var elem *types.Comment
 		err := cur.Decode(&elem)
 		if err != nil {
-			result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+			result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 			return
 		}
 		if elem.Owner == idUser {
@@ -156,45 +156,45 @@ func (repo *MongoCommentRepository) GetCommentsByTextAndOwner(search string, idU
 	}
 
 	if err := cur.Err(); err != nil {
-		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	cur.Close(context.Background())
-	result <- types.CommentsWithErrorType{Comments: results, Err: nil}
+	result <- &types.CommentsWithErrorType{Comments: results, Err: nil}
 }
 
 // GetCommentsByResultID : get all comments for a given result ID
-func (repo *MongoCommentRepository) GetCommentsByResultID(idResult string, result chan<- types.CommentsWithErrorType) {
+func (repo *MongoCommentRepository) GetCommentsByResultID(idResult string, result chan<- *types.CommentsWithErrorType) {
 	defer close(result)
-	var results []types.Comment
+	var results []*types.Comment
 
 	collection := repo.client.Database(repo.config.Database.DbName).Collection("comment")
 
 	cur, err := collection.Find(context.Background(), bson.M{"idResult": idResult})
 
 	if err != nil {
-		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	for cur.Next(context.TODO()) {
-		var comment types.Comment
+		var comment *types.Comment
 		err := cur.Decode(&comment)
 		if err != nil {
-			result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+			result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 			return
 		}
 		results = append(results, comment)
 	}
 
 	if err := cur.Err(); err != nil {
-		result <- types.CommentsWithErrorType{Comments: []types.Comment{}, Err: err}
+		result <- &types.CommentsWithErrorType{Comments: nil, Err: err}
 		return
 	}
 
 	cur.Close(context.TODO())
-	result <- types.CommentsWithErrorType{Comments: results, Err: err}
+	result <- &types.CommentsWithErrorType{Comments: results, Err: err}
 
 }
 

@@ -80,12 +80,12 @@ type Comment struct {
 }
 
 type CommentsWithErrorType struct {
-	Comments []Comment
+	Comments []*Comment
 	Err      error
 }
 
 type CommentWithErrorType struct {
-	Comment Comment
+	Comment *Comment
 	Err     error
 }
 

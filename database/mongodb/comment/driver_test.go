@@ -59,7 +59,7 @@ func TestInsertComment(t *testing.T) {
 }
 
 func TestGetComments(t *testing.T) {
-	commentsChan := make(chan types.CommentsWithErrorType)
+	commentsChan := make(chan *types.CommentsWithErrorType)
 	go db.GetComments(commentsChan)
 	result := <-commentsChan
 	assert.NoError(t, result.Err)
@@ -90,7 +90,7 @@ func TestUpdateComment(t *testing.T) {
 }
 
 func TestGetCommentByID(t *testing.T) {
-	result := make(chan types.CommentWithErrorType)
+	result := make(chan *types.CommentWithErrorType)
 	go db.GetCommentByID(commentByIdID, result)
 	ch := <-result
 	assert.NotNil(t, ch.Comment)
@@ -98,7 +98,7 @@ func TestGetCommentByID(t *testing.T) {
 }
 
 func TestGetCommentsByText(t *testing.T) {
-	result := make(chan types.CommentsWithErrorType)
+	result := make(chan *types.CommentsWithErrorType)
 	search := "some-search-text"
 	go db.GetCommentsByText(search, result)
 	ch := <-result
@@ -109,7 +109,7 @@ func TestGetCommentsByText(t *testing.T) {
 func TestGetCommentsByTextAndOwner(t *testing.T) {
 	search := "some-search-text"
 	idUser := "specefic-test-owner"
-	commentsChan := make(chan types.CommentsWithErrorType)
+	commentsChan := make(chan *types.CommentsWithErrorType)
 	go db.GetCommentsByTextAndOwner(search, idUser, commentsChan)
 	result := <-commentsChan
 	assert.NoError(t, result.Err)
@@ -117,7 +117,7 @@ func TestGetCommentsByTextAndOwner(t *testing.T) {
 }
 
 func TestGetCommentsByResult(t *testing.T) {
-	commentsChan := make(chan types.CommentsWithErrorType)
+	commentsChan := make(chan *types.CommentsWithErrorType)
 	go db.GetCommentsByResultID(resultID, commentsChan)
 	result := <-commentsChan
 	assert.NoError(t, result.Err)

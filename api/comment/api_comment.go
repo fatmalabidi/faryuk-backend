@@ -15,6 +15,10 @@ import (
 func AddCommentEndpoints(secure *mux.Router) {
 	secure.HandleFunc("/api/v1/comments", ListComments).Methods(http.MethodGet)
 	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodDelete)
+
+	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodGet)
+	secure.HandleFunc("/api/v1/comments", RemoveCommentByID).Methods(http.MethodPost)
+	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodPut)
 }
 
 type CommentFilter struct {
@@ -39,7 +43,7 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 
 	// FIXME : should use the same driver methor (it's uo to the driver to checkout all possible filters
 	// The driver will take a filter object as paramater that should be validated in the service layer and appliyed in the db
-	commentsChan := make(chan types.CommentsWithErrorType)
+	commentsChan := make(chan *types.CommentsWithErrorType)
 	if resultID != "" {
 		go dbHandler.GetCommentsByResultID(resultID, commentsChan)
 	} else if searchText != "" {
@@ -89,6 +93,48 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If an error occurred, return an appropriate HTTP response
 		utils.WriteInternalError(&w, err.Error())
+		return
+	}
+
+	// If the operation was successful, return a success response
+	utils.ReturnSuccess(&w, nil)
+}
+
+
+func GetCommentByID(w http.ResponseWriter, r *http.Request) {
+	// Get the comment ID from the request URL parameters
+	vars := mux.Vars(r)
+	commentID := vars["id"]
+
+	cfg, confErr := config.MakeConfig()
+	if confErr != nil {
+		log.Fatal(confErr)
+	}
+	dbHandler, err := database.CreateDbHandler(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer dbHandler.CloseConnection()
+
+	// Create a channel to receive the result of the database operation
+	commentChan := make(chan *types.CommentWithErrorType)
+
+	// Call the RemoveCommentByID method asynchronously
+	go dbHandler.GetCommentByID(commentID, commentChan)
+
+	// Wait for the database operation to complete and check for errors
+	result := <-commentChan
+
+	if result.Err != nil {
+		// If an error occurred, return an appropriate HTTP response
+		utils.WriteInternalError(&w, err.Error())
+		return
+	}
+
+	
+	if result.Comment == nil {
+		// If an error occurred, return an appropriate HTTP response
+		utils.WriteNotFound(&w)
 		return
 	}
 

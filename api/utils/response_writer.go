@@ -29,6 +29,11 @@ func WriteBadRequest(w *http.ResponseWriter) {
 	writeResponse(w, types.JSONReturn{Status: "BadRequest", Code: http.StatusBadRequest})
 }
 
+func WriteNotFound(w *http.ResponseWriter) {
+	(*w).WriteHeader(http.StatusNotFound)
+	writeResponse(w, types.JSONReturn{Status: "NotFound", Code: http.StatusNotFound})
+}
+
 func WriteInternalError(w *http.ResponseWriter, m string) {
 	(*w).WriteHeader(http.StatusInternalServerError)
 	writeResponse(w, types.JSONReturn{Status: "Fail", Body: m, Code: http.StatusInternalServerError})

@@ -37,7 +37,7 @@ func NewDBHandler() *Handler {
 }
 
 // CloseConnection : closes connection with mongo db
-func (db *Handler) CloseConnection() {
+func (db *Handler) CloseCommentDBConnection() {
 	err := db.client.Disconnect(context.TODO())
 	if err != nil {
 		log.Fatal(err)

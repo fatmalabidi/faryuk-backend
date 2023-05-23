@@ -98,7 +98,7 @@ func getWebResult(
 	var historyRecord types.HistoryRecord
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	webresult := types.WebResult{}
 

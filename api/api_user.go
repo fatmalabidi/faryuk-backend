@@ -76,7 +76,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	c := make(chan types.User)
 
@@ -128,7 +128,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	c := make(chan types.User)
 
@@ -182,7 +182,7 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	usr := dbHandler.GetUserByID(userID)
 	if usr == nil || !user.Login(usr, currentPassword) {
@@ -248,7 +248,7 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	usr := dbHandler.GetUserByID(userID)
 	if usr == nil {
@@ -274,7 +274,7 @@ func changeTheme(w http.ResponseWriter, r *http.Request) {
 func whoami(w http.ResponseWriter, r *http.Request) {
 	_, id, err := getIdentity(&w, r)
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	usr := dbHandler.GetUserByID(id)
 	if err != nil {
@@ -303,7 +303,7 @@ func getUsername(w http.ResponseWriter, r *http.Request) {
 	idUser := vars["id"]
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	usr := dbHandler.GetUserByID(idUser)
 
@@ -344,7 +344,7 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	group, err = dbHandler.GetGroupByID(groupid)
 	if err != nil {
@@ -368,7 +368,7 @@ func getUsersByGroup(w http.ResponseWriter, r *http.Request) {
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 	usrs := dbHandler.GetUsers()
 
 	for idx := range usrs {

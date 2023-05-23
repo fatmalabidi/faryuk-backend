@@ -26,7 +26,7 @@ func getGroups(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var groups []types.Group
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	username, idUser, err := getIdentity(&w, r)
 	if err != nil {
@@ -70,7 +70,7 @@ func addGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	groupRes, err := dbHandler.GetGroupsByName(name)
 	if err == nil && groupRes.ID != "Dummy" {
@@ -109,7 +109,7 @@ func deleteGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	err = dbHandler.RemoveGroupByID(id)
 	if err != nil {
@@ -148,7 +148,7 @@ func addUserToGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	group, err := dbHandler.GetGroupByID(idGroup)
 	if err != nil {
@@ -208,7 +208,7 @@ func removeUserFromGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	user := dbHandler.GetUserByID(idUser)
 	if user == nil {

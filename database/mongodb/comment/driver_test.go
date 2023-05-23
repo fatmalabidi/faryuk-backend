@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 	db = comment.NewMongoRepository(cfg)
-	defer db.CloseConnection()
+	defer db.CloseCommentDBConnection()
 	initIDs()
 	setup()
 	os.Exit(m.Run())

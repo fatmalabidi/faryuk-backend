@@ -56,7 +56,7 @@ func getResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	if searchMap["group"] != "" {
 		group, err := dbHandler.GetGroupsByName(searchMap["group"])
@@ -103,7 +103,7 @@ func countResults(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	if username == "admin" {
 		cntResults, err = dbHandler.CountResultsBySearch(searchMap)
@@ -123,7 +123,7 @@ func getResultByID(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	result := dbHandler.GetResultByID(id)
 	if result == nil {
@@ -138,7 +138,7 @@ func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	result := dbHandler.GetResultByID(id)
 	if result == nil {
@@ -163,7 +163,7 @@ func deleteResultByID(w http.ResponseWriter, r *http.Request) {
 func deleteTag(w http.ResponseWriter, r *http.Request) {
 	var objmap map[string]json.RawMessage
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {

@@ -98,6 +98,16 @@ type User struct {
 	Groups   []Group `bson:"groups" json:"groups"`
 }
 
+type UserWithErrorType struct {
+	Users *User
+	Err   error
+}
+
+type UsersWithErrorType struct {
+	Users []*User
+	Err   error
+}
+
 // Group : workgroup struct to permit result sharing
 type Group struct {
 	ID   string `bson:"id" json:"id"`

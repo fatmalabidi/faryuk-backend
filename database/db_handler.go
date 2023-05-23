@@ -4,18 +4,20 @@ import (
 	"FaRyuk/api/utils"
 	"FaRyuk/config"
 	"FaRyuk/database/mongodb/comment"
+	"FaRyuk/database/mongodb/user"
 	"FaRyuk/internal/types"
 	"errors"
 )
 
-type DbHandler interface {
+type Handler interface {
 	CommentHandler
+	UserHandler
 	// TODO add the remaining interfaces
 }
 
-type MainDb struct {
+type MainDbHandler struct {
 	CommentHandler
-	// TODO add the remaining handlers
+	UserHandler
 }
 
 type CommentHandler interface {
@@ -24,19 +26,27 @@ type CommentHandler interface {
 	Delete(id string, done chan<- error)
 	Update(r *types.Comment, done chan<- error)
 	GetByID(id string, result chan<- *types.CommentWithErrorType)
-	// GetCommentsByText(search string, result chan *types.CommentsWithErrorType)
-	// GetCommentsByTextAndOwner(search string, idUser string, result chan *types.CommentsWithErrorType)
-	// GetCommentsByResultID(idResult string, result chan<- *types.CommentsWithErrorType)
-	CloseConnection()
+	CloseCommentDBConnection()
 }
 
-func CreateDbHandler(cfg *config.AppConfig) (DbHandler, error) {
-	var dbHandler MainDb
+type UserHandler interface {
+	// Create(r *types.User, done chan<- error)
+	// List(comments chan<- *types.UsersWithErrorType)
+	// Delete(id string, done chan<- error)
+	// Update(r *types.User, done chan<- error)
+	// GetByID(id string, result chan<- *types.UserWithErrorType)
+	CloseUserDBConnection()
+}
+
+func CreateDbHandler(cfg *config.AppConfig) (Handler, error) {
+	var dbHandler MainDbHandler
 	switch cfg.Database.DbType {
 	case "mongo":
+		dbHandler.UserHandler = user.NewMongoRepository(cfg)
 		dbHandler.CommentHandler = comment.NewMongoRepository(cfg)
 	default:
 		return nil, errors.New("db type not supported")
 	}
+
 	return dbHandler, nil
 }

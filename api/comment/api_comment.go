@@ -31,7 +31,7 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	listCommentsFilter := extractFilter(rr)
 	commentsChan := make(chan *types.CommentsWithErrorType)
@@ -52,7 +52,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	commentID := vars["id"]
 
 	dbHandler := createDbHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	done := make(chan error)
 
@@ -72,7 +72,7 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 	commentID := vars["id"]
 
 	dbHandler := createDbHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	// Create a channel to receive the result of the database operation
 	commentChan := make(chan *types.CommentWithErrorType)
@@ -108,7 +108,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := createDbHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	done := make(chan error)
 	go dbHandler.Create(&newComment, done)
@@ -133,7 +133,7 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 	newComment.ID = commentID
 
 	dbHandler := createDbHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	done := make(chan error)
 	go dbHandler.Update(&newComment, done)
@@ -147,7 +147,7 @@ func UpdateComment(w http.ResponseWriter, r *http.Request) {
 	utils.ReturnSuccessCreated(&w)
 }
 
-func createDbHandler() database.DbHandler {
+func createDbHandler() database.Handler {
 	cfg, confErr := config.MakeConfig()
 	if confErr != nil {
 		log.Fatal(confErr)

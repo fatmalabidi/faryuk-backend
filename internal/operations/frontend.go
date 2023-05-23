@@ -29,7 +29,7 @@ func DoHost(
 	dirs := helper.FileToStrings("./ressources/dirs/" + dirsFilename)
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	for idx := range scanners {
 		r, err := dbHandler.GetRunnerByID(scanners[idx])
@@ -125,7 +125,7 @@ func WebScanPort(idUser, id string, port int, ssl bool, base, dirFilename, statu
 	var webRunners []types.Runner
 	dirs := helper.FileToStrings("./ressources/dirs/" + dirFilename)
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	for idx := range scanners {
 		r, err := dbHandler.GetRunnerByID(scanners[idx])
@@ -186,7 +186,7 @@ func RunnerScanPort(idUser, id string, port int, scanners []string) bool {
 	var portRunners []types.Runner
 	var historyRecord types.HistoryRecord
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 	resPtr := dbHandler.GetResultByID(id)
 	result := *resPtr
 
@@ -260,7 +260,7 @@ func DoDomain(idUser, domain, groupId, subdomainFilename string, isWildcard bool
 	results := make([]string, 0)
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	historyRecord.ID = uuid.New().String()
 	historyRecord.Owner = idUser

@@ -56,7 +56,7 @@ func shareResult(w http.ResponseWriter, r *http.Request) {
 	}
 	s := sharing.NewSharing(idUser, idResult, sharedWith)
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	err = dbHandler.InsertSharing(s)
 
@@ -79,7 +79,7 @@ func acceptSharing(w http.ResponseWriter, r *http.Request) {
 	idSharing := vars["id"]
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	s, err := dbHandler.GetSharingByID(idSharing)
 	if err != nil {
@@ -130,7 +130,7 @@ func declineSharing(w http.ResponseWriter, r *http.Request) {
 	idSharing := vars["id"]
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	s, err := dbHandler.GetSharingByID(idSharing)
 	if err != nil {
@@ -161,7 +161,7 @@ func getPending(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 	sharings, err := dbHandler.GetSharingsByUser(idUser)
 
 	if err != nil {

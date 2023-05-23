@@ -12,7 +12,7 @@ import (
 
 func getInfos(w http.ResponseWriter, r *http.Request) {
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	results := types.Infos{}
 

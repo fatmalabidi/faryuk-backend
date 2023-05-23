@@ -24,7 +24,7 @@ func getRunners(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var runners []types.Runner
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	username, idUser, err := getIdentity(&w, r)
 	if err != nil {
@@ -105,7 +105,7 @@ func addRunner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	runner := runner.NewRunner(tag, displayName, strings.Split(cmdLine, " "), idUser, isWeb, isPort)
 	err = dbHandler.InsertRunner(runner)
@@ -138,7 +138,7 @@ func deleteRunner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	err = dbHandler.RemoveRunnerByID(id)
 	if err != nil {

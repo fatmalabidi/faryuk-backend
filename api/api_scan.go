@@ -123,7 +123,7 @@ func webscanResultByID(w http.ResponseWriter, r *http.Request) {
 func scanAndSave(idUser string, host string, groupID string, portlist string, dirlist string, rescan bool, scanners []string) {
 
 	dbHandler := models.NewDBHandler()
-	defer dbHandler.CloseConnection()
+	defer dbHandler.CloseCommentDBConnection()
 
 	rs, _ := dbHandler.GetResultsByHostAndOwner(host, idUser)
 	l := sync.Mutex{}

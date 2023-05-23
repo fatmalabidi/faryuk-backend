@@ -30,7 +30,7 @@ func NewMongoRepository(config *config.AppConfig) *MongoRepository {
 }
 
 // CloseConnection : closes connection with mongo db
-func (repo *MongoRepository) CloseConnection() {
+func (repo *MongoRepository) CloseCommentDBConnection() {
 	err := repo.Database().Client().Disconnect(context.TODO())
 	if err != nil {
 		log.Fatal(err)

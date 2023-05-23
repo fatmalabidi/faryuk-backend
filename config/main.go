@@ -41,16 +41,18 @@ func getEnvironment() string {
 	return "dev"
 }
 
-type AppConfig struct {
-	Server struct {
-		Port int    `yaml:"Port"`
-		Host string `yaml:"Host"`
-	} `yaml:"Server"`
+type Server struct {
+	Port int    `yaml:"Port"`
+	Host string `yaml:"Host"`
+}
+type Database struct {
+	DbType string `yaml:"DbType"`
+	Port   string `yaml:"Port"`
+	Host   string `yaml:"Host"`
+	DbName string `yaml:"DbName"`
+}
 
-	Database struct {
-		DbType string `yaml:"DbType"`
-		Port   string `yaml:"Port"`
-		Host   string `yaml:"Host"`
-		DbName string `yaml:"DbName"`
-	} `yaml:"Database"`
+type AppConfig struct {
+	Server   Server   `yaml:"Server"`
+	Database Database `yaml:"Database"`
 }

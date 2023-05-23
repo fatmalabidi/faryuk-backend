@@ -48,36 +48,21 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 }
 
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
-	// Get the comment ID from the request URL parameters
 	vars := mux.Vars(r)
 	commentID := vars["id"]
 
-	cfg, confErr := config.MakeConfig()
-	if confErr != nil {
-		log.Fatal(confErr)
-	}
-	dbHandler, err := database.CreateDbHandler(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	dbHandler := createDbHandler()
 	defer dbHandler.CloseConnection()
 
-	// Create a channel to receive the result of the database operation
 	done := make(chan error)
 
-	// Call the Delete method asynchronously
 	go dbHandler.Delete(commentID, done)
-
-	// Wait for the database operation to complete and check for errors
-	err = <-done
-
+	err := <-done
 	if err != nil {
-		// If an error occurred, return an appropriate HTTP response
 		utils.WriteInternalError(&w, err.Error())
 		return
 	}
 
-	// If the operation was successful, return a success response
 	utils.ReturnSuccessNoContent(&w)
 }
 
@@ -86,14 +71,7 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	commentID := vars["id"]
 
-	cfg, confErr := config.MakeConfig()
-	if confErr != nil {
-		log.Fatal(confErr)
-	}
-	dbHandler, err := database.CreateDbHandler(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	dbHandler := createDbHandler()
 	defer dbHandler.CloseConnection()
 
 	// Create a channel to receive the result of the database operation
@@ -107,7 +85,7 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 
 	if result.Err != nil {
 		// If an error occurred, return an appropriate HTTP response
-		utils.WriteInternalError(&w, err.Error())
+		utils.WriteInternalError(&w, result.Err.Error())
 		return
 	}
 
@@ -128,14 +106,57 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.WriteBadRequest(&w)
 	}
-	// If the operation was successful, return a success response
+
+	dbHandler := createDbHandler()
+	defer dbHandler.CloseConnection()
+
+	done := make(chan error)
+	go dbHandler.Create(&newComment, done)
+	err = <-done
+
+	if err != nil {
+		utils.WriteInternalError(&w, err.Error())
+		return
+	}
 	utils.ReturnSuccessCreated(&w)
 }
 
 func UpdateComment(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	commentID := vars["id"]
+	var newComment types.Comment
 
-	// If the operation was successful, return a success response
+	err := json.NewDecoder(r.Body).Decode(&newComment)
+	if err != nil {
+		utils.WriteBadRequest(&w)
+	}
+	newComment.ID = commentID
+
+	dbHandler := createDbHandler()
+	defer dbHandler.CloseConnection()
+
+	done := make(chan error)
+	go dbHandler.Update(&newComment, done)
+	err = <-done
+
+	if err != nil {
+		utils.WriteInternalError(&w, err.Error())
+		return
+	}
+
 	utils.ReturnSuccessCreated(&w)
+}
+
+func createDbHandler() database.DbHandler {
+	cfg, confErr := config.MakeConfig()
+	if confErr != nil {
+		log.Fatal(confErr)
+	}
+	dbHandler, err := database.CreateDbHandler(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return dbHandler
 }
 
 func extractFilter(rr *http.Request) utils.ListCommentsFilter {

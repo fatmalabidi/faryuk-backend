@@ -12,7 +12,7 @@ import (
 
 	"FaRyuk/api/utils"
 	"FaRyuk/config"
-	comment "FaRyuk/database/mongodb/comment"
+	"FaRyuk/database/mongodb/comment"
 	"FaRyuk/internal/types"
 
 	"github.com/google/uuid"
@@ -70,7 +70,6 @@ func TestList(t *testing.T) {
 	})
 
 	t.Run("list comments by search text", func(t *testing.T) {
-		fmt.Println("\n\nlist comments by search text")
 		result := make(chan *types.CommentsWithErrorType)
 		search := "some-search-text"
 		go db.List(utils.ListCommentsFilter{SearchText: search}, result)
@@ -80,7 +79,6 @@ func TestList(t *testing.T) {
 	})
 
 	t.Run("list comments by search text and owner", func(t *testing.T) {
-		fmt.Println("list comments by search text & owner")
 		search := "some-search-text"
 		idUser := "specefic-test-owner"
 		commentsChan := make(chan *types.CommentsWithErrorType)
@@ -91,8 +89,6 @@ func TestList(t *testing.T) {
 	})
 
 	t.Run("list comments by result ID", func(t *testing.T) {
-		fmt.Println("list comments by result ID")
-
 		commentsChan := make(chan *types.CommentsWithErrorType)
 		go db.List(utils.ListCommentsFilter{ResultID: resultID}, commentsChan)
 		result := <-commentsChan
@@ -100,7 +96,7 @@ func TestList(t *testing.T) {
 		assert.NotEmpty(t, result.Comments)
 	})
 }
- 
+
 func TestDelete(t *testing.T) {
 	done := make(chan error)
 	go db.Delete(commentToDeleteID, done)
@@ -131,7 +127,6 @@ func TestGetByID(t *testing.T) {
 	assert.NotNil(t, ch.Comment)
 	assert.NoError(t, ch.Err)
 }
-
 
 func setup() error {
 	// Set up test configuration

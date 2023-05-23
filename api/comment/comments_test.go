@@ -49,42 +49,6 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func TestListComments(t *testing.T) {
-	// TODO add token validation
-	req, err := http.NewRequest("GET", "/comments", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	comment_api.ListComments(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	var response struct {
-		Body []types.Comment `json:"body"`
-	}
-
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	comments := response.Body
-
-	assert.NotEmpty(t, comments)
-
-	for _, mockComment := range comments {
-		if !(mockComment.Owner == "unit test" || mockComment.Owner == "specefic-test-owner") {
-			t.Fatal("wrong comment received", mockComment.Owner)
-		}
-		assert.True(t, mockComment.Content != "")
-		assert.True(t, mockComment.IDResult != "")
-	}
-}
-
 func TestDelete(t *testing.T) {
 	commentID := "some-id"
 
@@ -98,109 +62,145 @@ func TestDelete(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
-func TestGetCommentsByResultID(t *testing.T) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("/comments?resultID=%s", resultID), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestListComments(t *testing.T) {
+	t.Run("list all comments (with no filter)", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/comments", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	rr := httptest.NewRecorder()
-	comment_api.ListComments(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+		rr := httptest.NewRecorder()
+		comment_api.ListComments(rr, req)
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v",
+				status, http.StatusOK)
+		}
 
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotNil(t, rr.Body)
-	var comments []types.Comment
-	var response struct {
-		Body []types.Comment `json:"body"`
-	}
+		var response struct {
+			Body []types.Comment `json:"body"`
+		}
 
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(response.Body) == 0 {
-		t.Fail()
-	}
-	for _, com := range comments {
-		if com.Content != "new test comment to be filtered by result ID" {
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		comments := response.Body
+		assert.NotEmpty(t, comments)
+
+		for _, mockComment := range comments {
+			if !(mockComment.Owner == "unit test" || mockComment.Owner == "specefic-test-owner") {
+				t.Fatal("wrong comment received", mockComment.Owner)
+			}
+			assert.True(t, mockComment.Content != "")
+			assert.True(t, mockComment.IDResult != "")
+		}
+	})
+
+	t.Run("list comments by search text", func(t *testing.T) {
+		req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s", "some-search-text"), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		comment_api.ListComments(rr, req)
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v",
+				status, http.StatusOK)
+		}
+
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+		var comments []types.Comment
+		var response struct {
+			Body []types.Comment `json:"body"`
+		}
+
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(response.Body) == 0 {
 			t.Fail()
 		}
-	}
-}
+		for _, com := range comments {
+			if com.Content != "some-search-text" {
+				t.Fail()
+			}
+		}
+	})
 
-func TestGetCommentsByText(t *testing.T) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s", "some-search-text"), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("list comments by search text and owner", func(t *testing.T) {
+		req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s&owner=%s", "some-search-text", "specefic-test-owner"), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	rr := httptest.NewRecorder()
-	comment_api.ListComments(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+		rr := httptest.NewRecorder()
+		comment_api.ListComments(rr, req)
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v",
+				status, http.StatusOK)
+		}
 
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotNil(t, rr.Body)
-	var comments []types.Comment
-	var response struct {
-		Body []types.Comment `json:"body"`
-	}
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+		var comments []types.Comment
+		var response struct {
+			Body []types.Comment `json:"body"`
+		}
 
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(response.Body) == 0 {
-		t.Fail()
-	}
-	for _, com := range comments {
-		if com.Content != "some-search-text" {
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(response.Body) == 0 {
 			t.Fail()
 		}
-	}
-}
+		for _, com := range comments {
+			if com.Content != "some-search-text" {
+				t.Fail()
+			}
+			if com.Content != "specefic-owner" {
+				t.Fail()
+			}
+		}
+	})
 
-func TestGetCommentsByTextAndOwner(t *testing.T) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("/comments?searchText=%s&owner=%s", "some-search-text", "specefic-test-owner"), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("list comments by resultID", func(t *testing.T) {
+		req, err := http.NewRequest("GET", fmt.Sprintf("/comments?resultID=%s", resultID), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	rr := httptest.NewRecorder()
-	comment_api.ListComments(rr, req)
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
+		rr := httptest.NewRecorder()
+		comment_api.ListComments(rr, req)
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("handler returned wrong status code: got %v want %v",
+				status, http.StatusOK)
+		}
 
-	assert.Equal(t, http.StatusOK, rr.Code)
-	assert.NotNil(t, rr.Body)
-	var comments []types.Comment
-	var response struct {
-		Body []types.Comment `json:"body"`
-	}
+		assert.Equal(t, http.StatusOK, rr.Code)
+		assert.NotNil(t, rr.Body)
+		var comments []types.Comment
+		var response struct {
+			Body []types.Comment `json:"body"`
+		}
 
-	err = json.Unmarshal(rr.Body.Bytes(), &response)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(response.Body) == 0 {
-		t.Fail()
-	}
-	for _, com := range comments {
-		if com.Content != "some-search-text" {
+		err = json.Unmarshal(rr.Body.Bytes(), &response)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(response.Body) == 0 {
 			t.Fail()
 		}
-		if com.Content != "specefic-owner" {
-			t.Fail()
+		for _, com := range comments {
+			if com.Content != "new test comment to be filtered by result ID" {
+				t.Fail()
+			}
 		}
-	}
+	})
 }
 
 func setup() error {
@@ -249,5 +249,5 @@ func initIDs() {
 	commentByIdID = uuid.NewString()
 	CommentByResultID = uuid.NewString()
 	commentToDeleteID = uuid.NewString()
-	resultID = "000000000000000000" //uuid.NewString()
+	resultID = uuid.NewString()
 }

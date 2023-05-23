@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// FIXME error messages/code should be clear and respect the HTTP standards
 func writeResponse(w *http.ResponseWriter, m types.JSONReturn) {
 	(*w).Header().Add("Content-Type", "application/json")
 	err := json.NewEncoder(*w).Encode(m)

@@ -24,7 +24,7 @@ type MongoRepository struct {
 
 func NewMongoRepository(config *config.AppConfig) *MongoRepository {
 	return &MongoRepository{
-		createMongoDBCLient(config),
+		createMongoDBCLient(&config.Database),
 		config,
 	}
 }
@@ -91,7 +91,6 @@ func (repo *MongoRepository) List(listCommentsFilter utils.ListCommentsFilter, c
 	}
 	defer cur.Close(context.Background())
 
-
 	for cur.Next(context.Background()) {
 		var elem *types.Comment
 		err := cur.Decode(&elem)
@@ -127,8 +126,8 @@ func buildFilter(listCommentsFilter utils.ListCommentsFilter) interface{} {
 	return bson.M{"$and": filters}
 }
 
-func createMongoDBCLient(config *config.AppConfig) *mongo.Collection {
-	client, err := mongo.NewClient(options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", config.Database.Host, config.Database.Port)))
+func createMongoDBCLient(dbConfig *config.Database) *mongo.Collection {
+	client, err := mongo.NewClient(options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", dbConfig.Host, dbConfig.Port)))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -141,5 +140,5 @@ func createMongoDBCLient(config *config.AppConfig) *mongo.Collection {
 		log.Fatal(err)
 	}
 
-	return client.Database(config.Database.DbName).Collection(collection_name)
+	return client.Database(dbConfig.DbName).Collection(collection_name)
 }

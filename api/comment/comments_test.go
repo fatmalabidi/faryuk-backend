@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	db                                                            *comment.MongoCommentRepository
+	db                                                            *comment.MongoRepository
 	commentByIdID, CommentByResultID, commentToDeleteID, resultID string
 )
 
@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 		log.Fatal("error init test config")
 		os.Exit(-1)
 	}
-	db = comment.NewMongoCommentRepository(cfg)
+	db = comment.NewMongoRepository(cfg)
 	defer db.CloseConnection()
 
 	initIDs()
@@ -85,7 +85,7 @@ func TestListComments(t *testing.T) {
 	}
 }
 
-func TestRemoveCommentByID(t *testing.T) {
+func TestDelete(t *testing.T) {
 	commentID := "some-id"
 
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("/comments:%s", commentID), nil)
@@ -94,7 +94,7 @@ func TestRemoveCommentByID(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	comment_api.RemoveCommentByID(rr, req)
+	comment_api.DeleteComment(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
@@ -207,7 +207,7 @@ func setup() error {
 	for _, testData := range getCommentsTestData() {
 		done := make(chan error)
 
-		go db.InsertComment(&testData, done)
+		go db.Create(&testData, done)
 		err := <-done
 		if err != nil {
 			return errors.New("element not inserted")

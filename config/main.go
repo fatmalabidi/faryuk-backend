@@ -9,7 +9,7 @@ import (
 	"github.com/jinzhu/configor"
 )
 
-func MakeConfig() (*Config, error) {
+func MakeConfig() (*AppConfig, error) {
 	var configFilePath string
 
 	newConfig := configor.New(&configor.Config{})
@@ -28,7 +28,7 @@ func MakeConfig() (*Config, error) {
 		return path.Join(path.Dir(filename), configFilePath)
 	}
 
-	conf := new(Config)
+	conf := new(AppConfig)
 	err := newConfig.Load(conf, getConfigFile())
 	return conf, err
 }
@@ -41,7 +41,7 @@ func getEnvironment() string {
 	return "dev"
 }
 
-type Config struct {
+type AppConfig struct {
 	Server struct {
 		Port int    `yaml:"Port"`
 		Host string `yaml:"Host"`

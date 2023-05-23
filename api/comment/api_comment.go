@@ -5,6 +5,7 @@ import (
 	"FaRyuk/config"
 	"FaRyuk/database"
 	"FaRyuk/internal/types"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -14,17 +15,10 @@ import (
 // TODO move to new file: API mapper
 func AddCommentEndpoints(secure *mux.Router) {
 	secure.HandleFunc("/api/v1/comments", ListComments).Methods(http.MethodGet)
-	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodDelete)
-
-	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodGet)
-	secure.HandleFunc("/api/v1/comments", RemoveCommentByID).Methods(http.MethodPost)
-	secure.HandleFunc("/api/v1/comments/{id}", RemoveCommentByID).Methods(http.MethodPut)
-}
-
-type CommentFilter struct {
-	ResultID   string `schema:"resultID"`
-	SearchText string `schema:"searchText"`
-	Owner      string `schema:"owner"`
+	secure.HandleFunc("/api/v1/comments/{id}", DeleteComment).Methods(http.MethodDelete)
+	secure.HandleFunc("/api/v1/comments/{id}", GetCommentByID).Methods(http.MethodGet)
+	secure.HandleFunc("/api/v1/comments", CreateComment).Methods(http.MethodPost)
+	secure.HandleFunc("/api/v1/comments/{id}", UpdateComment).Methods(http.MethodPut)
 }
 
 func ListComments(w http.ResponseWriter, rr *http.Request) {
@@ -38,24 +32,11 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 		log.Fatal(err)
 	}
 	defer dbHandler.CloseConnection()
-	resultID := rr.URL.Query().Get("resultID")
-	searchText := rr.URL.Query().Get("searchText")
 
-	// FIXME : should use the same driver methor (it's uo to the driver to checkout all possible filters
-	// The driver will take a filter object as paramater that should be validated in the service layer and appliyed in the db
+	listCommentsFilter := extractFilter(rr)
 	commentsChan := make(chan *types.CommentsWithErrorType)
-	if resultID != "" {
-		go dbHandler.GetCommentsByResultID(resultID, commentsChan)
-	} else if searchText != "" {
-		owner := rr.URL.Query().Get("owner")
-		if owner != "" {
-			go dbHandler.GetCommentsByTextAndOwner(searchText, owner, commentsChan)
-		} else {
-			go dbHandler.GetCommentsByText(searchText, commentsChan)
-		}
-	} else {
-		go dbHandler.GetComments(commentsChan)
-	}
+
+	go dbHandler.List(listCommentsFilter, commentsChan)
 
 	result := <-commentsChan
 	if result.Err != nil {
@@ -66,7 +47,7 @@ func ListComments(w http.ResponseWriter, rr *http.Request) {
 	utils.ReturnSuccess(&w, result.Comments)
 }
 
-func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
+func DeleteComment(w http.ResponseWriter, r *http.Request) {
 	// Get the comment ID from the request URL parameters
 	vars := mux.Vars(r)
 	commentID := vars["id"]
@@ -84,8 +65,8 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	// Create a channel to receive the result of the database operation
 	done := make(chan error)
 
-	// Call the RemoveCommentByID method asynchronously
-	go dbHandler.RemoveCommentByID(commentID, done)
+	// Call the Delete method asynchronously
+	go dbHandler.Delete(commentID, done)
 
 	// Wait for the database operation to complete and check for errors
 	err = <-done
@@ -97,9 +78,8 @@ func RemoveCommentByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the operation was successful, return a success response
-	utils.ReturnSuccess(&w, nil)
+	utils.ReturnSuccessNoContent(&w)
 }
-
 
 func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 	// Get the comment ID from the request URL parameters
@@ -119,8 +99,8 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 	// Create a channel to receive the result of the database operation
 	commentChan := make(chan *types.CommentWithErrorType)
 
-	// Call the RemoveCommentByID method asynchronously
-	go dbHandler.GetCommentByID(commentID, commentChan)
+	// Call the Delete method asynchronously
+	go dbHandler.GetByID(commentID, commentChan)
 
 	// Wait for the database operation to complete and check for errors
 	result := <-commentChan
@@ -131,7 +111,6 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 	if result.Comment == nil {
 		// If an error occurred, return an appropriate HTTP response
 		utils.WriteNotFound(&w)
@@ -140,4 +119,33 @@ func GetCommentByID(w http.ResponseWriter, r *http.Request) {
 
 	// If the operation was successful, return a success response
 	utils.ReturnSuccess(&w, nil)
+}
+
+func CreateComment(w http.ResponseWriter, r *http.Request) {
+	var newComment types.Comment
+
+	err := json.NewDecoder(r.Body).Decode(&newComment)
+	if err != nil {
+		utils.WriteBadRequest(&w)
+	}
+	// If the operation was successful, return a success response
+	utils.ReturnSuccessCreated(&w)
+}
+
+func UpdateComment(w http.ResponseWriter, r *http.Request) {
+
+	// If the operation was successful, return a success response
+	utils.ReturnSuccessCreated(&w)
+}
+
+func extractFilter(rr *http.Request) utils.ListCommentsFilter {
+	resultID := rr.URL.Query().Get("resultID")
+	searchText := rr.URL.Query().Get("searchText")
+	owner := rr.URL.Query().Get("owner")
+	listCommentsFilter := utils.ListCommentsFilter{
+		ResultID:   resultID,
+		SearchText: searchText,
+		Owner:      owner,
+	}
+	return listCommentsFilter
 }

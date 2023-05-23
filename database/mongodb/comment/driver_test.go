@@ -10,8 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"FaRyuk/api/utils"
 	"FaRyuk/config"
-	"FaRyuk/database/mongodb/comment"
+	comment "FaRyuk/database/mongodb/comment"
 	"FaRyuk/internal/types"
 
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ import (
 )
 
 var (
-	db *comment.MongoCommentRepository
+	db *comment.MongoRepository
 	commentByIdID,
 	CommentByResultID,
 	commentToDeleteID,
@@ -34,7 +35,7 @@ func TestMain(m *testing.M) {
 		log.Fatal("error init test config")
 		os.Exit(-1)
 	}
-	db = comment.NewMongoCommentRepository(cfg)
+	db = comment.NewMongoRepository(cfg)
 	defer db.CloseConnection()
 	initIDs()
 	setup()
@@ -42,7 +43,7 @@ func TestMain(m *testing.M) {
 	// TODO add the cleanup db logic
 }
 
-func TestInsertComment(t *testing.T) {
+func TestCreate(t *testing.T) {
 	comment := &types.Comment{
 		ID:          uuid.NewString(),
 		Content:     "new test comment",
@@ -52,28 +53,62 @@ func TestInsertComment(t *testing.T) {
 		IDResult:    uuid.NewString(),
 	}
 	done := make(chan error)
-	go db.InsertComment(comment, done)
+	go db.Create(comment, done)
 	err := <-done
 	assert.NoError(t, err)
 	fmt.Println(err)
 }
 
-func TestGetComments(t *testing.T) {
-	commentsChan := make(chan *types.CommentsWithErrorType)
-	go db.GetComments(commentsChan)
-	result := <-commentsChan
-	assert.NoError(t, result.Err)
-	assert.NotEmpty(t, result.Comments)
-}
+func TestList(t *testing.T) {
+	t.Run("list all comments (with no filter)", func(t *testing.T) {
+		fmt.Println("\n\nlist all comments (with no filter)")
+		commentsChan := make(chan *types.CommentsWithErrorType)
+		go db.List(utils.ListCommentsFilter{}, commentsChan)
+		result := <-commentsChan
+		assert.NoError(t, result.Err)
+		assert.NotEmpty(t, result.Comments)
+	})
 
-func TestRemoveCommentByID(t *testing.T) {
+	t.Run("list comments by search text", func(t *testing.T) {
+		fmt.Println("\n\nlist comments by search text")
+		result := make(chan *types.CommentsWithErrorType)
+		search := "some-search-text"
+		go db.List(utils.ListCommentsFilter{SearchText: search}, result)
+		ch := <-result
+		assert.NoError(t, ch.Err)
+		assert.NotNil(t, ch.Comments)
+	})
+
+	t.Run("list comments by search text and owner", func(t *testing.T) {
+		fmt.Println("list comments by search text & owner")
+		search := "some-search-text"
+		idUser := "specefic-test-owner"
+		commentsChan := make(chan *types.CommentsWithErrorType)
+		go db.List(utils.ListCommentsFilter{SearchText: search, Owner: idUser}, commentsChan)
+		result := <-commentsChan
+		assert.NoError(t, result.Err)
+		assert.NotEmpty(t, result.Comments)
+	})
+
+	t.Run("list comments by result ID", func(t *testing.T) {
+		fmt.Println("list comments by result ID")
+
+		commentsChan := make(chan *types.CommentsWithErrorType)
+		go db.List(utils.ListCommentsFilter{ResultID: resultID}, commentsChan)
+		result := <-commentsChan
+		assert.NoError(t, result.Err)
+		assert.NotEmpty(t, result.Comments)
+	})
+}
+ 
+func TestDelete(t *testing.T) {
 	done := make(chan error)
-	go db.RemoveCommentByID(commentToDeleteID, done)
+	go db.Delete(commentToDeleteID, done)
 	err := <-done
 	assert.NoError(t, err)
 }
 
-func TestUpdateComment(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	done := make(chan error)
 	comment := &types.Comment{
 		ID:          commentToUpdateID,
@@ -83,56 +118,28 @@ func TestUpdateComment(t *testing.T) {
 		IDResult:    resultID,
 	}
 
-	go db.UpdateComment(comment, done)
+	go db.Update(comment, done)
 	err := <-done
 	assert.NoError(t, err)
 	// TODO get commlent by id and check if it is correctly updated
 }
 
-func TestGetCommentByID(t *testing.T) {
+func TestGetByID(t *testing.T) {
 	result := make(chan *types.CommentWithErrorType)
-	go db.GetCommentByID(commentByIdID, result)
+	go db.GetByID(commentByIdID, result)
 	ch := <-result
 	assert.NotNil(t, ch.Comment)
 	assert.NoError(t, ch.Err)
 }
 
-func TestGetCommentsByText(t *testing.T) {
-	result := make(chan *types.CommentsWithErrorType)
-	search := "some-search-text"
-	go db.GetCommentsByText(search, result)
-	ch := <-result
-	assert.NotNil(t, ch.Comments)
-	assert.NoError(t, ch.Err)
-}
-
-func TestGetCommentsByTextAndOwner(t *testing.T) {
-	search := "some-search-text"
-	idUser := "specefic-test-owner"
-	commentsChan := make(chan *types.CommentsWithErrorType)
-	go db.GetCommentsByTextAndOwner(search, idUser, commentsChan)
-	result := <-commentsChan
-	assert.NoError(t, result.Err)
-	assert.NotEmpty(t, result.Comments)
-}
-
-func TestGetCommentsByResult(t *testing.T) {
-	commentsChan := make(chan *types.CommentsWithErrorType)
-	go db.GetCommentsByResultID(resultID, commentsChan)
-	result := <-commentsChan
-	assert.NoError(t, result.Err)
-	assert.NotEmpty(t, result.Comments)
-}
 
 func setup() error {
 	// Set up test configuration
 	os.Setenv("CONFIGOR_ENV", "test")
-	// Set up test database handler
-
 	for _, testData := range getCommentsTestData() {
 		done := make(chan error)
 
-		go db.InsertComment(&testData, done)
+		go db.Create(&testData, done)
 		err := <-done
 		if err != nil {
 			return errors.New("element not inserted")

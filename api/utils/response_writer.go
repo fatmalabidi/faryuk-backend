@@ -42,3 +42,11 @@ func WriteInternalError(w *http.ResponseWriter, m string) {
 func ReturnSuccess(w *http.ResponseWriter, m interface{}) {
 	writeResponse(w, types.JSONReturn{Status: "Success", Code: http.StatusOK, Body: m})
 }
+
+func ReturnSuccessNoContent(w *http.ResponseWriter) {
+	writeResponse(w, types.JSONReturn{Status: "Success", Code: http.StatusNoContent})
+}
+
+func ReturnSuccessCreated(w *http.ResponseWriter) {
+	writeResponse(w, types.JSONReturn{Status: "Success", Code: http.StatusCreated})
+}

@@ -1,7 +1,7 @@
 tag: test
 
 Database:
-  DbType: mongo
+  DbType: in-memory
   Host: localhost
   Port: 27017
   DbName: faryuk-test

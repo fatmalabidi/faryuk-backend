@@ -3,8 +3,10 @@ package database
 import (
 	"FaRyuk/api/utils"
 	"FaRyuk/config"
-	"FaRyuk/database/mongodb/comment"
-	"FaRyuk/database/mongodb/user"
+	"FaRyuk/database/in-memory/comment"
+	"FaRyuk/database/in-memory/user"
+	mongo_comment "FaRyuk/database/mongodb/comment"
+	mongo_user "FaRyuk/database/mongodb/user"
 	"FaRyuk/internal/types"
 	"errors"
 )
@@ -42,8 +44,11 @@ func CreateDbHandler(cfg *config.AppConfig) (Handler, error) {
 	var dbHandler MainDbHandler
 	switch cfg.Database.DbType {
 	case "mongo":
-		dbHandler.UserHandler = user.NewMongoRepository(cfg)
-		dbHandler.CommentHandler = comment.NewMongoRepository(cfg)
+		dbHandler.UserHandler = mongo_user.NewMongoRepository(cfg)
+		dbHandler.CommentHandler = mongo_comment.NewMongoRepository(cfg)
+	case "in-memory":
+		dbHandler.UserHandler = user.NewInMemoryRepository(cfg)
+		dbHandler.CommentHandler = comment.NewInMemoryRepository(cfg)
 	default:
 		return nil, errors.New("db type not supported")
 	}
